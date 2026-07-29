@@ -6,27 +6,27 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useAnalysisStore } from '@/state/analysisStore'
 import { ingestFile } from '@/lib/processing/ingestFile'
-import { loadSampleFiles } from '@/data/sampleFiles'
+import { loadSampleFiles, type SampleDataKind } from '@/data/sampleFiles'
 
 export function AddDataStep() {
   const files = useAnalysisStore((s) => s.files)
   const addFiles = useAnalysisStore((s) => s.addFiles)
   const removeFile = useAnalysisStore((s) => s.removeFile)
   const setStep = useAnalysisStore((s) => s.setStep)
-  const [isLoadingSample, setIsLoadingSample] = useState(false)
+  const [loadingSample, setLoadingSample] = useState<SampleDataKind | null>(null)
 
   async function handleFiles(fileList: File[]) {
     const parsed = await Promise.all(fileList.map((f) => ingestFile(f, 'upload')))
     addFiles(parsed)
   }
 
-  async function handleUseSampleData() {
-    setIsLoadingSample(true)
+  async function handleUseSampleData(kind: SampleDataKind) {
+    setLoadingSample(kind)
     try {
-      const sample = await loadSampleFiles()
+      const sample = await loadSampleFiles(kind)
       addFiles(sample)
     } finally {
-      setIsLoadingSample(false)
+      setLoadingSample(null)
     }
   }
 
@@ -52,14 +52,35 @@ export function AddDataStep() {
 
       <div className="flex items-center justify-center gap-3">
         <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" aria-hidden="true" />
-        <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">or</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">or try sample data</span>
         <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" aria-hidden="true" />
       </div>
 
-      <Button variant="secondary" className="mx-auto" onClick={handleUseSampleData} disabled={isLoadingSample}>
-        <Sparkles className="h-4 w-4" aria-hidden="true" />
-        {isLoadingSample ? 'Loading sample data…' : 'Use sample data'}
-      </Button>
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => handleUseSampleData('full')}
+            disabled={loadingSample !== null}
+          >
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+            {loadingSample === 'full' ? 'Loading…' : 'Full analysis sample'}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => handleUseSampleData('catalog-only')}
+            disabled={loadingSample !== null}
+          >
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+            {loadingSample === 'catalog-only' ? 'Loading…' : 'Amazon catalog only'}
+          </Button>
+        </div>
+        <p className="max-w-md text-center text-xs text-neutral-500 dark:text-neutral-400">
+          Both use real Amazon product data. The full sample adds illustrative sales and inventory
+          numbers so you can see the complete dashboard; the catalog-only sample is unmodified real
+          data with no invented numbers.
+        </p>
+      </div>
 
       {files.length > 0 && (
         <div>
