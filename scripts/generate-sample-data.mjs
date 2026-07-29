@@ -106,7 +106,19 @@ const FULL_MUST_INCLUDE = [
 ]
 const cleanPool = rows.filter(cleanRow)
 const fullRows = stratifiedSample(cleanPool, 14, FULL_MUST_INCLUDE)
-writeCsv('full-products.csv', fullRows)
+
+// Deliberate data-quality fixture: a conflicting duplicate product record —
+// the same real product ID reappearing with a different price/rating, as if
+// two exports of the catalog disagreed. Still real values (both the
+// original row and this variant's price/rating are plausible), just
+// deliberately inconsistent with each other.
+const conflictSource = fullRows[0]
+const conflictRow = {
+  ...conflictSource,
+  discounted_price: '₹299',
+  rating: '3.2',
+}
+writeCsv('full-products.csv', [...fullRows, conflictRow])
 
 // ---- full-analysis illustrative sales + inventory, keyed to the real product IDs above ----
 let seed = 7
