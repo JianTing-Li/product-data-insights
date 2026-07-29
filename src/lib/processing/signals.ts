@@ -4,6 +4,7 @@ import type { DataQualityReport, ProductPerformance, ProductSignal } from './typ
 
 export interface SignalContext {
   dataQuality: DataQualityReport
+  currency: string
 }
 
 function checkDataQualityHold(product: ProductPerformance, ctx: SignalContext): ProductSignal | null {
@@ -73,12 +74,12 @@ function checkRestockAttention(product: ProductPerformance): ProductSignal | nul
   }
 }
 
-function checkSalesDecline(product: ProductPerformance): ProductSignal | null {
+function checkSalesDecline(product: ProductPerformance, ctx: SignalContext): ProductSignal | null {
   if (product.salesChangePct === undefined || product.salesChangePct > SIGNAL_THRESHOLDS.salesDeclinePct) return null
 
   const supportingValues = [
-    { label: 'Revenue (current period)', value: formatCurrency(product.revenueCurrent) },
-    { label: 'Revenue (previous period)', value: formatCurrency(product.revenuePrevious) },
+    { label: 'Revenue (current period)', value: formatCurrency(product.revenueCurrent, ctx.currency) },
+    { label: 'Revenue (previous period)', value: formatCurrency(product.revenuePrevious, ctx.currency) },
   ]
   if (product.revenueDeclineContributionPct !== undefined) {
     supportingValues.push({ label: 'Contribution to total revenue decline', value: formatPercent(product.revenueDeclineContributionPct) })
@@ -134,7 +135,7 @@ function checkSlowMovingInventory(product: ProductPerformance): ProductSignal | 
   }
 }
 
-function checkMarginConcern(product: ProductPerformance): ProductSignal | null {
+function checkMarginConcern(product: ProductPerformance, ctx: SignalContext): ProductSignal | null {
   if (product.grossMargin === undefined || product.grossMargin >= SIGNAL_THRESHOLDS.lowMarginThreshold) return null
 
   return {
@@ -144,8 +145,8 @@ function checkMarginConcern(product: ProductPerformance): ProductSignal | null {
     detected: `Gross margin is ${formatPercent(product.grossMargin)}, below the typical healthy range.`,
     supportingValues: [
       { label: 'Gross margin', value: formatPercent(product.grossMargin) },
-      { label: 'Revenue (current period)', value: formatCurrency(product.revenueCurrent) },
-      { label: 'Gross profit (current period)', value: formatCurrency(product.grossProfit) },
+      { label: 'Revenue (current period)', value: formatCurrency(product.revenueCurrent, ctx.currency) },
+      { label: 'Gross profit (current period)', value: formatCurrency(product.grossProfit, ctx.currency) },
     ],
     whyItMatters: 'Thin margins mean this product may be contributing little profit despite selling.',
     suggestedInvestigation: 'Verify product cost data is current, then review pricing and discount levels.',
@@ -193,7 +194,7 @@ function checkPromisingReputation(product: ProductPerformance): ProductSignal | 
   }
 }
 
-function checkPriceIntegrityRisk(product: ProductPerformance): ProductSignal | null {
+function checkPriceIntegrityRisk(product: ProductPerformance, ctx: SignalContext): ProductSignal | null {
   if (product.currentPrice !== undefined && product.originalPrice !== undefined && product.currentPrice > product.originalPrice) {
     return {
       id: 'price-integrity-risk',
@@ -201,8 +202,8 @@ function checkPriceIntegrityRisk(product: ProductPerformance): ProductSignal | n
       title: 'Price-integrity risk',
       detected: 'Current price is higher than the original list price, which is unusual for a discount listing.',
       supportingValues: [
-        { label: 'Current price', value: formatCurrency(product.currentPrice) },
-        { label: 'Original price', value: formatCurrency(product.originalPrice) },
+        { label: 'Current price', value: formatCurrency(product.currentPrice, ctx.currency) },
+        { label: 'Original price', value: formatCurrency(product.originalPrice, ctx.currency) },
       ],
       whyItMatters: 'Pricing that looks inconsistent can affect customer trust and marketplace compliance.',
       suggestedInvestigation: 'Verify the source price fields and confirm which price is currently live.',
@@ -227,8 +228,8 @@ function checkPriceIntegrityRisk(product: ProductPerformance): ProductSignal | n
         title: 'Price-integrity risk',
         detected: 'The average price customers actually paid differs notably from the catalog price.',
         supportingValues: [
-          { label: 'Catalog price', value: formatCurrency(product.currentPrice) },
-          { label: 'Average selling price', value: formatCurrency(impliedPrice) },
+          { label: 'Catalog price', value: formatCurrency(product.currentPrice, ctx.currency) },
+          { label: 'Average selling price', value: formatCurrency(impliedPrice, ctx.currency) },
         ],
         whyItMatters: 'A gap between catalog and actual selling price may point to discounting or a stale catalog feed.',
         suggestedInvestigation: 'Verify whether discounts, promotions, or a catalog sync issue explain the difference.',
@@ -243,9 +244,9 @@ function checkPriceIntegrityRisk(product: ProductPerformance): ProductSignal | n
 const SIGNAL_CHECKS: ((product: ProductPerformance, ctx: SignalContext) => ProductSignal | null)[] = [
   (p, ctx) => checkDataQualityHold(p, ctx),
   (p) => checkOutOfStock(p),
-  (p) => checkPriceIntegrityRisk(p),
-  (p) => checkSalesDecline(p),
-  (p) => checkMarginConcern(p),
+  (p, ctx) => checkPriceIntegrityRisk(p, ctx),
+  (p, ctx) => checkSalesDecline(p, ctx),
+  (p, ctx) => checkMarginConcern(p, ctx),
   (p) => checkReputationConcern(p),
   (p) => checkRestockAttention(p),
   (p) => checkSlowMovingInventory(p),

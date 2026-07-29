@@ -4,13 +4,7 @@ import { Select } from '@/components/ui/Select'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useAnalysisStore } from '@/state/analysisStore'
 import { formatCurrency, formatNumber } from '@/lib/format'
-
-interface ChartPoint {
-  date: string
-  revenue: number
-  orders: number
-  units: number
-}
+import type { DailySalesPoint } from '@/lib/processing/types'
 
 const metricOptions = [
   { value: 'revenue', label: 'Revenue' },
@@ -24,12 +18,23 @@ const metricLabel: Record<'revenue' | 'orders' | 'units', string> = {
   units: 'Units sold',
 }
 
-export function PerformanceChart({ series }: { series: ChartPoint[] }) {
+export function PerformanceChart({ series, currency }: { series: DailySalesPoint[]; currency: string }) {
   const metric = useAnalysisStore((s) => s.chartMetric)
   const setMetric = useAnalysisStore((s) => s.setChartMetric)
   const reducedMotion = useReducedMotion()
 
-  const formatValue = metric === 'revenue' ? formatCurrency : formatNumber
+  const formatValue = (v: number) => (metric === 'revenue' ? formatCurrency(v, currency) : formatNumber(v))
+
+  if (series.length === 0) {
+    return (
+      <Card className="p-4">
+        <h3 className="mb-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">Performance</h3>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          No dated sales rows were available to chart.
+        </p>
+      </Card>
+    )
+  }
 
   return (
     <Card className="p-4">
@@ -66,7 +71,7 @@ export function PerformanceChart({ series }: { series: ChartPoint[] }) {
               axisLine={false}
               tickLine={false}
               width={56}
-              tickFormatter={(v: number) => (metric === 'revenue' ? `$${v}` : `${v}`)}
+              tickFormatter={(v: number) => formatValue(v)}
             />
             <Tooltip
               formatter={(value) => [formatValue(Number(value)), metricLabel[metric]]}

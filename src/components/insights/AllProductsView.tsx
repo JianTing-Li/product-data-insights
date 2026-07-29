@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Search, X } from 'lucide-react'
+import { Download, Search, X } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -7,6 +7,9 @@ import { ProductDetailDialog } from './ProductDetailDialog'
 import { severityTone } from './signalPresentation'
 import { useAnalysisStore } from '@/state/analysisStore'
 import { formatCurrency, formatNumber } from '@/lib/format'
+import { toCsv } from '@/lib/csv/exportCsv'
+import { downloadCsv } from '@/lib/csv/downloadCsv'
+import { buildProductPerformanceTable } from '@/lib/processing/exportRows'
 import type { AnalysisResult, SignalId } from '@/lib/processing/types'
 
 const signalLabels: Record<SignalId, string> = {
@@ -60,6 +63,11 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
   const hasActiveFilters = filters.search !== '' || filters.category !== null || filters.attentionType !== 'all'
   const selectedProduct = analysis.products.find((p) => p.sku === selectedSku) ?? null
 
+  function handleExport() {
+    const table = buildProductPerformanceTable(filtered)
+    downloadCsv('product-performance.csv', toCsv(table.headers, table.rows))
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -99,9 +107,15 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
         )}
       </div>
 
-      <p className="text-sm text-neutral-500 dark:text-neutral-400">
-        Showing {filtered.length.toLocaleString()} of {analysis.products.length.toLocaleString()} products
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          Showing {filtered.length.toLocaleString()} of {analysis.products.length.toLocaleString()} products
+        </p>
+        <Button variant="ghost" size="sm" onClick={handleExport} disabled={filtered.length === 0}>
+          <Download className="h-3.5 w-3.5" aria-hidden="true" />
+          Export
+        </Button>
+      </div>
 
       <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
         <table className="w-full text-left text-sm">
@@ -125,7 +139,7 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">{p.sku}</p>
                 </td>
                 {hasCategory && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{p.category ?? '—'}</td>}
-                {hasSales && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{formatCurrency(p.revenueCurrent)}</td>}
+                {hasSales && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{formatCurrency(p.revenueCurrent, analysis.currency)}</td>}
                 {hasSales && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{formatNumber(p.unitsCurrent)}</td>}
                 {hasInventory && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{formatNumber(p.availableInventory)}</td>}
                 {hasRating && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{p.rating ? `${p.rating.toFixed(1)} / 5` : '—'}</td>}
@@ -154,7 +168,7 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
         </table>
       </div>
 
-      <ProductDetailDialog product={selectedProduct} onClose={() => setSelectedSku(null)} />
+      <ProductDetailDialog product={selectedProduct} currency={analysis.currency} onClose={() => setSelectedSku(null)} />
     </div>
   )
 }

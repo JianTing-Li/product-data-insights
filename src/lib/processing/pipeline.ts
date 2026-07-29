@@ -3,9 +3,20 @@ import { deduplicateProducts } from './aggregateProducts'
 import { aggregateSalesByProductAndPeriod, aggregateSalesOverallByPeriod, type OverallSalesAggregate, type ProductSalesAggregate } from './aggregateSales'
 import { buildDataQualityReport } from './buildDataQualityReport'
 import { computeAnalysisPeriod } from './computeAnalysisPeriod'
+import { computeDailySeries } from './dailySeries'
+import { detectCurrency } from './detectCurrency'
 import { joinDatasets } from './joinDatasets'
 import { validateInventoryRows, validateProductRows, validateSalesRows } from './validateRows'
-import type { AddedFile, AnalysisMode, AnalysisPeriod, DataQualityReport, DatasetKind, FileMapping, ProductPerformance } from './types'
+import type {
+  AddedFile,
+  AnalysisMode,
+  AnalysisPeriod,
+  DailySalesPoint,
+  DataQualityReport,
+  DatasetKind,
+  FileMapping,
+  ProductPerformance,
+} from './types'
 
 export interface PipelineOutput {
   mode: AnalysisMode
@@ -18,6 +29,8 @@ export interface PipelineOutput {
   salesAggregates: Map<string, ProductSalesAggregate>
   overallSales: OverallSalesAggregate | null
   dataQuality: DataQualityReport
+  dailySeries: DailySalesPoint[]
+  currency: string
 }
 
 /** Runs the full parse-through-join pipeline: normalize/parse/validate each
@@ -74,6 +87,8 @@ export function runPipeline(
   })
 
   const mode: AnalysisMode = datasetsPresent.includes('sales') ? 'full' : 'catalog-only'
+  const dailySeries = period ? computeDailySeries(acceptedSales, period) : []
+  const currency = detectCurrency(acceptedSales)
 
-  return { mode, datasetsPresent, period, products: joinedProducts, salesAggregates, overallSales, dataQuality }
+  return { mode, datasetsPresent, period, products: joinedProducts, salesAggregates, overallSales, dataQuality, dailySeries, currency }
 }

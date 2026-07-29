@@ -1,8 +1,10 @@
-export function formatCurrency(value: number | undefined | null): string {
+export function formatCurrency(value: number | undefined | null, currency: string = 'USD'): string {
   if (value === undefined || value === null || Number.isNaN(value)) return '—'
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(
-    value,
-  )
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 2 }).format(value)
+  } catch {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value)
+  }
 }
 
 export function formatNumber(value: number | undefined | null): string {

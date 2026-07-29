@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { runFullAnalysis } from '@/lib/processing/analyze'
 import type { AddedFile, AnalysisResult, FileMapping, SignalId } from '@/lib/processing/types'
 
 export type Step = 1 | 2 | 3
@@ -32,6 +33,7 @@ interface AnalysisState {
   setFileMapping: (mapping: FileMapping) => void
   setAnalysis: (result: AnalysisResult) => void
   setIsAnalyzing: (value: boolean) => void
+  runAnalysis: () => void
   setPeriodLength: (length: 7 | 30) => void
   setChartMetric: (metric: 'revenue' | 'orders' | 'units') => void
   setFilters: (patch: Partial<ProductFilters>) => void
@@ -39,7 +41,7 @@ interface AnalysisState {
   reset: () => void
 }
 
-export const useAnalysisStore = create<AnalysisState>((set) => ({
+export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   step: 1,
   files: [],
   fileMappings: {},
@@ -69,7 +71,15 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
     })),
   setAnalysis: (result) => set({ analysis: result }),
   setIsAnalyzing: (value) => set({ isAnalyzing: value }),
-  setPeriodLength: (length) => set({ periodLength: length }),
+  runAnalysis: () => {
+    const { files, fileMappings, periodLength } = get()
+    const result = runFullAnalysis(files, fileMappings, periodLength)
+    set({ analysis: result })
+  },
+  setPeriodLength: (length) => {
+    set({ periodLength: length })
+    if (get().analysis !== null) get().runAnalysis()
+  },
   setChartMetric: (metric) => set({ chartMetric: metric }),
   setFilters: (patch) => set((state) => ({ filters: { ...state.filters, ...patch } })),
   clearFilters: () => set({ filters: defaultFilters }),

@@ -26,7 +26,7 @@ export function runFullAnalysis(
   }))
 
   const withSignals = withContribution.map((product) =>
-    generateProductSignals(product, { dataQuality: pipeline.dataQuality }),
+    generateProductSignals(product, { dataQuality: pipeline.dataQuality, currency: pipeline.currency }),
   )
 
   return {
@@ -36,5 +36,7 @@ export function runFullAnalysis(
     period: pipeline.period,
     dataQuality: pipeline.dataQuality,
     datasetsPresent: pipeline.datasetsPresent,
+    dailySeries: pipeline.dailySeries,
+    currency: pipeline.currency,
   }
 }

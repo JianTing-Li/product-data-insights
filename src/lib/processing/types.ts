@@ -256,6 +256,13 @@ export interface KpiSummary {
 
 export type AnalysisMode = 'full' | 'catalog-only'
 
+export interface DailySalesPoint {
+  date: string
+  revenue: number
+  orders: number
+  units: number
+}
+
 export interface AnalysisResult {
   mode: AnalysisMode
   products: ProductPerformance[]
@@ -263,4 +270,6 @@ export interface AnalysisResult {
   period: AnalysisPeriod | null
   dataQuality: DataQualityReport
   datasetsPresent: DatasetKind[]
+  dailySeries: DailySalesPoint[]
+  currency: string
 }

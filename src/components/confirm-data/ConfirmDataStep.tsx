@@ -4,7 +4,6 @@ import { Card } from '@/components/ui/Card'
 import { FileConfirmCard } from './FileConfirmCard'
 import { useAnalysisStore } from '@/state/analysisStore'
 import { createFileMapping } from '@/lib/processing/mapColumns'
-import { mockAnalysis } from '@/data/mockAnalysis'
 import type { DatasetKind } from '@/lib/processing/types'
 
 export function ConfirmDataStep() {
@@ -13,7 +12,7 @@ export function ConfirmDataStep() {
   const setFileMapping = useAnalysisStore((s) => s.setFileMapping)
   const updateFile = useAnalysisStore((s) => s.updateFile)
   const setStep = useAnalysisStore((s) => s.setStep)
-  const setAnalysis = useAnalysisStore((s) => s.setAnalysis)
+  const runAnalysis = useAnalysisStore((s) => s.runAnalysis)
   const setIsAnalyzing = useAnalysisStore((s) => s.setIsAnalyzing)
   const isAnalyzing = useAnalysisStore((s) => s.isAnalyzing)
 
@@ -37,13 +36,12 @@ export function ConfirmDataStep() {
 
   function handleAnalyze() {
     setIsAnalyzing(true)
-    // Bridges to fixture data until real aggregation/metrics/signals land (Phase 3/4).
-    // Parsing and mapping above are already real.
+    // Deferred so the "Analyzing…" state paints before the (synchronous) pipeline runs.
     setTimeout(() => {
-      setAnalysis(mockAnalysis)
+      runAnalysis()
       setIsAnalyzing(false)
       setStep(3)
-    }, 500)
+    }, 0)
   }
 
   const canAnalyze = parsedFiles.length > 0 && parsedFiles.every((f) => fileMappings[f.id])
