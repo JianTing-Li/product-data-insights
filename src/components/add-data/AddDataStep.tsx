@@ -1,27 +1,36 @@
+import { useState } from 'react'
 import { ShieldCheck, Sparkles } from 'lucide-react'
 import { FileDropzone } from './FileDropzone'
 import { FileListItem } from './FileListItem'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useAnalysisStore } from '@/state/analysisStore'
-import { mockIngestFile, mockSampleFiles } from '@/lib/processing/mockIngest'
+import { ingestFile } from '@/lib/processing/ingestFile'
+import { loadSampleFiles } from '@/data/sampleFiles'
 
 export function AddDataStep() {
   const files = useAnalysisStore((s) => s.files)
   const addFiles = useAnalysisStore((s) => s.addFiles)
   const removeFile = useAnalysisStore((s) => s.removeFile)
   const setStep = useAnalysisStore((s) => s.setStep)
+  const [isLoadingSample, setIsLoadingSample] = useState(false)
 
   async function handleFiles(fileList: File[]) {
-    const parsed = await Promise.all(fileList.map(mockIngestFile))
+    const parsed = await Promise.all(fileList.map((f) => ingestFile(f, 'upload')))
     addFiles(parsed)
   }
 
-  function handleUseSampleData() {
-    addFiles(mockSampleFiles.filter((sample) => !files.some((f) => f.id === sample.id)))
+  async function handleUseSampleData() {
+    setIsLoadingSample(true)
+    try {
+      const sample = await loadSampleFiles()
+      addFiles(sample)
+    } finally {
+      setIsLoadingSample(false)
+    }
   }
 
-  const canContinue = files.length > 0
+  const canContinue = files.some((f) => f.status === 'parsed')
 
   return (
     <div className="flex flex-col gap-6">
@@ -47,9 +56,9 @@ export function AddDataStep() {
         <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" aria-hidden="true" />
       </div>
 
-      <Button variant="secondary" className="mx-auto" onClick={handleUseSampleData}>
+      <Button variant="secondary" className="mx-auto" onClick={handleUseSampleData} disabled={isLoadingSample}>
         <Sparkles className="h-4 w-4" aria-hidden="true" />
-        Use sample data
+        {isLoadingSample ? 'Loading sample data…' : 'Use sample data'}
       </Button>
 
       {files.length > 0 && (

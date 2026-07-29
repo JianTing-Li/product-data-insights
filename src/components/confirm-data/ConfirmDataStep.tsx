@@ -1,36 +1,52 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 import { FileConfirmCard } from './FileConfirmCard'
 import { useAnalysisStore } from '@/state/analysisStore'
-import { mockAutoMap } from '@/lib/processing/mockAutoMap'
+import { createFileMapping } from '@/lib/processing/mapColumns'
 import { mockAnalysis } from '@/data/mockAnalysis'
+import type { DatasetKind } from '@/lib/processing/types'
 
 export function ConfirmDataStep() {
   const files = useAnalysisStore((s) => s.files)
   const fileMappings = useAnalysisStore((s) => s.fileMappings)
   const setFileMapping = useAnalysisStore((s) => s.setFileMapping)
+  const updateFile = useAnalysisStore((s) => s.updateFile)
   const setStep = useAnalysisStore((s) => s.setStep)
   const setAnalysis = useAnalysisStore((s) => s.setAnalysis)
   const setIsAnalyzing = useAnalysisStore((s) => s.setIsAnalyzing)
   const isAnalyzing = useAnalysisStore((s) => s.isAnalyzing)
 
+  const parsedFiles = files.filter((f) => f.status === 'parsed')
+  const erroredFiles = files.filter((f) => f.status === 'error')
+
   useEffect(() => {
     for (const file of files) {
-      if (!fileMappings[file.id] && file.datasetKind) {
-        setFileMapping(mockAutoMap(file.id, file.datasetKind, file.headers))
+      if (file.status === 'parsed' && !fileMappings[file.id] && file.datasetKind) {
+        setFileMapping(createFileMapping(file.id, file.datasetKind, file.headers))
       }
     }
   }, [files, fileMappings, setFileMapping])
 
+  function handleDatasetKindChange(fileId: string, kind: DatasetKind) {
+    const file = files.find((f) => f.id === fileId)
+    if (!file) return
+    updateFile(fileId, { datasetKind: kind, detectionConfidence: 'high' })
+    setFileMapping(createFileMapping(fileId, kind, file.headers))
+  }
+
   function handleAnalyze() {
     setIsAnalyzing(true)
-    // Mock pipeline run — replaced by the real processing pipeline in later phases.
+    // Bridges to fixture data until real aggregation/metrics/signals land (Phase 3/4).
+    // Parsing and mapping above are already real.
     setTimeout(() => {
       setAnalysis(mockAnalysis)
       setIsAnalyzing(false)
       setStep(3)
     }, 500)
   }
+
+  const canAnalyze = parsedFiles.length > 0 && parsedFiles.every((f) => fileMappings[f.id])
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,8 +57,14 @@ export function ConfirmDataStep() {
         </p>
       </div>
 
+      {erroredFiles.length > 0 && (
+        <Card className="border-danger-500/30 bg-danger-50 px-4 py-3 text-sm text-danger-800 dark:bg-danger-500/5 dark:text-danger-300">
+          {erroredFiles.length} file{erroredFiles.length > 1 ? 's' : ''} couldn't be read and will be skipped: {erroredFiles.map((f) => f.filename).join(', ')}. Go back to remove or replace them.
+        </Card>
+      )}
+
       <div className="flex flex-col gap-4">
-        {files.map((file) => {
+        {parsedFiles.map((file) => {
           const mapping = fileMappings[file.id]
           if (!mapping) return null
           return (
@@ -51,6 +73,7 @@ export function ConfirmDataStep() {
               file={file}
               mapping={mapping}
               onMappingChange={setFileMapping}
+              onDatasetKindChange={(kind) => handleDatasetKindChange(file.id, kind)}
             />
           )
         })}
@@ -60,7 +83,7 @@ export function ConfirmDataStep() {
         <Button variant="ghost" onClick={() => setStep(1)}>
           Back to add data
         </Button>
-        <Button onClick={handleAnalyze} disabled={isAnalyzing}>
+        <Button onClick={handleAnalyze} disabled={isAnalyzing || !canAnalyze}>
           {isAnalyzing ? 'Analyzing…' : 'Analyze products'}
         </Button>
       </div>

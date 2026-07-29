@@ -5,6 +5,11 @@ export type DatasetKind = 'sales' | 'products' | 'inventory'
 
 export type RawRow = Record<string, string>
 
+export interface CsvParseIssue {
+  row: number
+  message: string
+}
+
 /** A file the user added, before or after parsing. */
 export interface AddedFile {
   id: string
@@ -18,6 +23,7 @@ export interface AddedFile {
   headers: string[]
   rowCount: number
   rows: RawRow[]
+  parseIssues: CsvParseIssue[]
 }
 
 // ---- Column mapping ----------------------------------------------------

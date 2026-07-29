@@ -1,24 +1,32 @@
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { Collapsible } from '@/components/ui/Collapsible'
+import { Select } from '@/components/ui/Select'
 import { MappingConfirmField } from './MappingConfirmField'
 import { MappingTable } from './MappingTable'
 import { RawPreview } from './RawPreview'
 import { FIELD_DEFINITIONS_BY_KIND, DATASET_LABELS } from '@/lib/processing/fieldDefinitions'
-import type { AddedFile, FileMapping } from '@/lib/processing/types'
+import type { AddedFile, DatasetKind, FileMapping } from '@/lib/processing/types'
 
 interface FileConfirmCardProps {
   file: AddedFile
   mapping: FileMapping
   onMappingChange: (mapping: FileMapping) => void
+  onDatasetKindChange: (kind: DatasetKind) => void
 }
 
-export function FileConfirmCard({ file, mapping, onMappingChange }: FileConfirmCardProps) {
+const kindOptions = (Object.keys(DATASET_LABELS) as DatasetKind[]).map((kind) => ({
+  value: kind,
+  label: DATASET_LABELS[kind],
+}))
+
+export function FileConfirmCard({ file, mapping, onMappingChange, onDatasetKindChange }: FileConfirmCardProps) {
   const fields = FIELD_DEFINITIONS_BY_KIND[mapping.datasetKind]
   const uncertainFields = fields.filter((f) => {
     const m = mapping.mappings.find((x) => x.field === f.field)
     return f.required && (!m || m.confidence === 'none' || m.confidence === 'low')
   })
+  const kindIsUncertain = file.detectionConfidence !== 'high'
 
   function updateField(fieldName: string, column: string | null) {
     onMappingChange({
@@ -37,9 +45,18 @@ export function FileConfirmCard({ file, mapping, onMappingChange }: FileConfirmC
           <p className="text-xs text-neutral-500 dark:text-neutral-400">{file.rowCount.toLocaleString()} rows</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge tone="accent">{DATASET_LABELS[mapping.datasetKind]}</Badge>
+          {kindIsUncertain ? (
+            <Select
+              ariaLabel={`Dataset type for ${file.filename}`}
+              value={mapping.datasetKind}
+              onValueChange={(v) => onDatasetKindChange(v as DatasetKind)}
+              options={kindOptions}
+            />
+          ) : (
+            <Badge tone="accent">{DATASET_LABELS[mapping.datasetKind]}</Badge>
+          )}
           <Badge tone={file.detectionConfidence === 'high' ? 'success' : 'warning'}>
-            {file.detectionConfidence === 'high' ? 'Detected automatically' : 'Detected with medium confidence'}
+            {file.detectionConfidence === 'high' ? 'Detected automatically' : `Please confirm — ${file.detectionConfidence} confidence`}
           </Badge>
         </div>
       </div>
@@ -69,7 +86,7 @@ export function FileConfirmCard({ file, mapping, onMappingChange }: FileConfirmC
         </Collapsible>
         <Collapsible trigger="Preview raw data">
           <div className="pb-1 pt-1">
-            <RawPreview headers={file.headers} rows={file.rows} />
+            <RawPreview headers={file.headers} rows={file.rows.slice(0, 8)} />
           </div>
         </Collapsible>
       </div>
