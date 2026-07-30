@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
-import { severityTone } from './signalPresentation'
+import { severityTone, signalBadgeLabel } from './signalPresentation'
 import type { ProductPerformance } from '@/lib/processing/types'
 
 interface ProductAttentionCardProps {
@@ -39,7 +39,7 @@ export function ProductAttentionCard({ product, onInspect }: ProductAttentionCar
           </p>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">{product.sku}</p>
         </div>
-        <Badge tone={severityTone[signal.severity]}>{signal.title}</Badge>
+        <Badge tone={severityTone[signal.severity]}>{signalBadgeLabel(signal)}</Badge>
       </div>
 
       <dl className="flex flex-wrap gap-x-4 gap-y-1">

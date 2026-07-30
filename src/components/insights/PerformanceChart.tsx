@@ -25,6 +25,15 @@ export function PerformanceChart({ series, currency }: { series: DailySalesPoint
 
   const formatValue = (v: number) => (metric === 'revenue' ? formatCurrency(v, currency) : formatNumber(v))
 
+  // Recharts' YAxis width is a fixed pixel box, not an auto-sizing one — size it off the
+  // longest label actually in play so large currency values (e.g. IDR in the hundreds of
+  // millions) don't get clipped, while small datasets keep the compact default width.
+  const longestYAxisLabelLength = series.reduce(
+    (max, point) => Math.max(max, formatValue(point[metric]).length),
+    0,
+  )
+  const yAxisWidth = Math.max(56, longestYAxisLabelLength * 7 + 16)
+
   if (series.length === 0) {
     return (
       <Card className="p-4">
@@ -70,7 +79,7 @@ export function PerformanceChart({ series, currency }: { series: DailySalesPoint
               className="text-neutral-500"
               axisLine={false}
               tickLine={false}
-              width={56}
+              width={yAxisWidth}
               tickFormatter={(v: number) => formatValue(v)}
             />
             <Tooltip

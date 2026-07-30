@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { ProductDetailDialog } from './ProductDetailDialog'
-import { severityTone } from './signalPresentation'
+import { severityTone, signalBadgeLabel } from './signalPresentation'
 import { useAnalysisStore } from '@/state/analysisStore'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { toCsv } from '@/lib/csv/exportCsv'
@@ -162,7 +162,7 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
                 {hasRating && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{p.rating ? `${p.rating.toFixed(1)} / 5` : '—'}</td>}
                 <td className="px-4 py-2.5">
                   {p.primarySignal ? (
-                    <Badge tone={severityTone[p.primarySignal.severity]}>{p.primarySignal.title}</Badge>
+                    <Badge tone={severityTone[p.primarySignal.severity]}>{signalBadgeLabel(p.primarySignal)}</Badge>
                   ) : (
                     <span className="text-xs text-neutral-400">None</span>
                   )}

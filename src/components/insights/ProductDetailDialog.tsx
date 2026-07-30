@@ -3,7 +3,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Badge } from '@/components/ui/Badge'
 import { Collapsible } from '@/components/ui/Collapsible'
 import { SignalFullDetail } from './SignalFullDetail'
-import { severityTone } from './signalPresentation'
+import { severityTone, signalBadgeLabel } from './signalPresentation'
 import { formatCurrency, formatDays, formatNumber, formatPercent } from '@/lib/format'
 import { findSourceRows } from '@/lib/processing/findSourceRows'
 import { useAnalysisStore } from '@/state/analysisStore'
@@ -44,7 +44,9 @@ export function ProductDetailDialog({ product, currency, onClose }: ProductDetai
                 </Badge>
               )}
               {product.primarySignal && (
-                <Badge tone={severityTone[product.primarySignal.severity]}>{product.primarySignal.title}</Badge>
+                <Badge tone={severityTone[product.primarySignal.severity]}>
+                  {signalBadgeLabel(product.primarySignal)}
+                </Badge>
               )}
             </div>
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
