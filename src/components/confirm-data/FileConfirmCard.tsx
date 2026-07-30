@@ -56,7 +56,7 @@ export function FileConfirmCard({ file, mapping, onMappingChange, onDatasetKindC
             <Badge tone="accent">{DATASET_LABELS[mapping.datasetKind]}</Badge>
           )}
           <Badge tone={file.detectionConfidence === 'high' ? 'success' : 'warning'}>
-            {file.detectionConfidence === 'high' ? 'Detected automatically' : `Please confirm — ${file.detectionConfidence} confidence`}
+            {file.detectionConfidence === 'high' ? 'Verified' : `Please confirm — ${file.detectionConfidence} confidence`}
           </Badge>
         </div>
       </div>
