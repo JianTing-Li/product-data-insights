@@ -26,6 +26,7 @@ export const PRODUCT_FIELDS: FieldDefinition[] = [
   { field: 'reviewText', label: 'Review text', required: false, valueType: 'text' },
   { field: 'productUrl', label: 'Product URL', required: false, valueType: 'text' },
   { field: 'imageUrl', label: 'Image URL', required: false, valueType: 'text' },
+  { field: 'currency', label: 'Currency', required: false, valueType: 'text' },
 ]
 
 export const INVENTORY_FIELDS: FieldDefinition[] = [

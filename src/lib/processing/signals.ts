@@ -195,15 +195,21 @@ function checkPromisingReputation(product: ProductPerformance): ProductSignal | 
 }
 
 function checkPriceIntegrityRisk(product: ProductPerformance, ctx: SignalContext): ProductSignal | null {
-  if (product.currentPrice !== undefined && product.originalPrice !== undefined && product.currentPrice > product.originalPrice) {
+  if (
+    product.currentPrice !== undefined &&
+    product.originalPrice !== undefined &&
+    product.originalPrice > 0 && // a zero original price is usually a missing-value encoding, not a real $0 list price
+    product.currentPrice > product.originalPrice
+  ) {
+    const catalogCurrency = product.currency ?? ctx.currency
     return {
       id: 'price-integrity-risk',
       severity: 'medium',
       title: 'Price-integrity risk',
       detected: 'Current price is higher than the original list price, which is unusual for a discount listing.',
       supportingValues: [
-        { label: 'Current price', value: formatCurrency(product.currentPrice, ctx.currency) },
-        { label: 'Original price', value: formatCurrency(product.originalPrice, ctx.currency) },
+        { label: 'Current price', value: formatCurrency(product.currentPrice, catalogCurrency) },
+        { label: 'Original price', value: formatCurrency(product.originalPrice, catalogCurrency) },
       ],
       whyItMatters: 'Pricing that looks inconsistent can affect customer trust and marketplace compliance.',
       suggestedInvestigation: 'Verify the source price fields and confirm which price is currently live.',

@@ -4,7 +4,7 @@ import { aggregateSalesByProductAndPeriod, aggregateSalesOverallByPeriod, type O
 import { buildDataQualityReport } from './buildDataQualityReport'
 import { computeAnalysisPeriod } from './computeAnalysisPeriod'
 import { computeDailySeries } from './dailySeries'
-import { detectCurrency } from './detectCurrency'
+import { detectCurrencyFromRecords } from './detectCurrency'
 import { joinDatasets } from './joinDatasets'
 import { validateInventoryRows, validateProductRows, validateSalesRows } from './validateRows'
 import type {
@@ -88,7 +88,10 @@ export function runPipeline(
 
   const mode: AnalysisMode = datasetsPresent.includes('sales') ? 'full' : 'catalog-only'
   const dailySeries = period ? computeDailySeries(acceptedSales, period) : []
-  const currency = detectCurrency(acceptedSales)
+  // Prefer sales currency (a dataset-level aggregate concept); fall back to
+  // the product catalog's own currency column when there's no sales data at
+  // all (catalog-only mode).
+  const currency = detectCurrencyFromRecords(acceptedSales) ?? detectCurrencyFromRecords(dedupedProducts) ?? 'USD'
 
   return { mode, datasetsPresent, period, products: joinedProducts, salesAggregates, overallSales, dataQuality, dailySeries, currency }
 }

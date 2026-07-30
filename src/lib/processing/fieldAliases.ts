@@ -31,6 +31,7 @@ export const FIELD_ALIASES: Record<FieldName, string[]> = {
     'item sku',
     'product code',
     'product_code',
+    'id',
   ],
   quantity: ['quantity', 'qty', 'units', 'unit count', 'unit_count', 'quantity ordered', 'quantity_ordered'],
   sellingPrice: [
@@ -58,7 +59,7 @@ export const FIELD_ALIASES: Record<FieldName, string[]> = {
 
   // Products
   productName: ['product name', 'product_name', 'name', 'title', 'item name', 'item_name'],
-  category: ['category', 'product category', 'product_category', 'category name', 'categories'],
+  category: ['category', 'product category', 'product_category', 'category name', 'categories', 'breadcrumb'],
   brand: ['brand', 'manufacturer', 'vendor'],
   currentPrice: [
     'current price',
@@ -67,6 +68,8 @@ export const FIELD_ALIASES: Record<FieldName, string[]> = {
     'discounted_price',
     'list price',
     'list_price',
+    'final price',
+    'final_price',
   ],
   originalPrice: [
     'original price',
@@ -76,6 +79,8 @@ export const FIELD_ALIASES: Record<FieldName, string[]> = {
     'msrp',
     'regular price',
     'regular_price',
+    'initial price',
+    'initial_price',
   ],
   productCost: ['product cost', 'product_cost', 'cost', 'unit cost', 'unit_cost', 'cogs'],
   rating: ['rating', 'avg rating', 'average rating', 'average_rating', 'star rating', 'stars'],
@@ -87,9 +92,12 @@ export const FIELD_ALIASES: Record<FieldName, string[]> = {
     'num_ratings',
     'review count',
     'review_count',
+    'reviews count',
+    'reviews_count',
+    'reviews',
   ],
   description: ['description', 'about product', 'about_product', 'product description', 'product_description', 'details'],
-  reviewText: ['review text', 'review_text', 'review content', 'review_content', 'reviews', 'review body', 'review_body'],
+  reviewText: ['review text', 'review_text', 'review content', 'review_content', 'review body', 'review_body'],
   productUrl: ['product url', 'product_url', 'url', 'link', 'product link', 'product_link'],
   imageUrl: ['image url', 'image_url', 'img link', 'img_link', 'image', 'thumbnail', 'thumbnail url', 'thumbnail_url'],
 

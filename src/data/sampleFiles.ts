@@ -1,12 +1,15 @@
 import { ingestFile } from '@/lib/processing/ingestFile'
 import type { AddedFile } from '@/lib/processing/types'
 
-export type SampleDataKind = 'full' | 'catalog-only'
+export type SampleCompany = 'amazon' | 'walmart' | 'shopee' | 'shein' | 'lazada'
 
-const SAMPLE_MANIFEST: Record<SampleDataKind, string[]> = {
-  full: ['full-sales.csv', 'full-products.csv', 'full-inventory.csv'],
-  'catalog-only': ['catalog-only-products.csv'],
-}
+export const SAMPLE_COMPANIES: { value: SampleCompany; label: string }[] = [
+  { value: 'amazon', label: 'Amazon' },
+  { value: 'walmart', label: 'Walmart' },
+  { value: 'shopee', label: 'Shopee' },
+  { value: 'shein', label: 'Shein' },
+  { value: 'lazada', label: 'Lazada' },
+]
 
 async function fetchAsFile(path: string): Promise<File> {
   const response = await fetch(`/sample-data/${path}`)
@@ -17,12 +20,12 @@ async function fetchAsFile(path: string): Promise<File> {
   return new File([text], path, { type: 'text/csv' })
 }
 
-/** Loads bundled sample data through the exact same parsing + detection
- * pipeline used for user uploads. The "full" set pairs real Amazon product
- * rows with illustrative sales/inventory data keyed to those same product
- * IDs; "catalog-only" is a real, unmodified slice of the Amazon product
- * export with no fabricated data at all. */
-export async function loadSampleFiles(kind: SampleDataKind): Promise<AddedFile[]> {
-  const files = await Promise.all(SAMPLE_MANIFEST[kind].map(fetchAsFile))
+/** Loads a company's bundled sample data through the exact same parsing +
+ * detection pipeline used for user uploads: real product catalog rows
+ * paired with illustrative sales/inventory data keyed to those same real
+ * product IDs. */
+export async function loadSampleFiles(company: SampleCompany): Promise<AddedFile[]> {
+  const paths = [`${company}-sales.csv`, `${company}-products.csv`, `${company}-inventory.csv`]
+  const files = await Promise.all(paths.map(fetchAsFile))
   return Promise.all(files.map((f) => ingestFile(f, 'sample')))
 }

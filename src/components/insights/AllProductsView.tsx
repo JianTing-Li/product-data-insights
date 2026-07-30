@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Download, Search, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight, Download, Search, X } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -25,16 +25,20 @@ const signalLabels: Record<SignalId, string> = {
   'data-quality-hold': 'Data-quality hold',
 }
 
+const PAGE_SIZE = 50
+
 export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
   const filters = useAnalysisStore((s) => s.filters)
   const setFilters = useAnalysisStore((s) => s.setFilters)
   const clearFilters = useAnalysisStore((s) => s.clearFilters)
   const [selectedSku, setSelectedSku] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
 
   const hasSales = analysis.datasetsPresent.includes('sales')
   const hasInventory = analysis.datasetsPresent.includes('inventory')
   const hasRating = analysis.products.some((p) => p.rating !== undefined)
   const hasCategory = analysis.products.some((p) => p.category !== undefined)
+  const hasPrice = analysis.products.some((p) => p.currentPrice !== undefined)
 
   const categories = useMemo(() => {
     const set = new Set<string>()
@@ -62,6 +66,16 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
 
   const hasActiveFilters = filters.search !== '' || filters.category !== null || filters.attentionType !== 'all'
   const selectedProduct = analysis.products.find((p) => p.sku === selectedSku) ?? null
+
+  useEffect(() => {
+    setPage(1)
+  }, [filters, analysis.products])
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const rangeStart = filtered.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, filtered.length)
 
   function handleExport() {
     const table = buildProductPerformanceTable(filtered)
@@ -109,7 +123,8 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Showing {filtered.length.toLocaleString()} of {analysis.products.length.toLocaleString()} products
+          Showing {rangeStart.toLocaleString()}–{rangeEnd.toLocaleString()} of {filtered.length.toLocaleString()} products
+          {filtered.length !== analysis.products.length && ` (filtered from ${analysis.products.length.toLocaleString()})`}
         </p>
         <Button variant="ghost" size="sm" onClick={handleExport} disabled={filtered.length === 0}>
           <Download className="h-3.5 w-3.5" aria-hidden="true" />
@@ -123,6 +138,7 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
             <tr>
               <th scope="col" className="px-4 py-2.5 font-medium">Product</th>
               {hasCategory && <th scope="col" className="px-4 py-2.5 font-medium">Category</th>}
+              {hasPrice && <th scope="col" className="px-4 py-2.5 font-medium">Price</th>}
               {hasSales && <th scope="col" className="px-4 py-2.5 font-medium">Revenue</th>}
               {hasSales && <th scope="col" className="px-4 py-2.5 font-medium">Units sold</th>}
               {hasInventory && <th scope="col" className="px-4 py-2.5 font-medium">Available inventory</th>}
@@ -132,13 +148,14 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 bg-white dark:divide-neutral-800 dark:bg-neutral-900">
-            {filtered.map((p) => (
+            {paginated.map((p) => (
               <tr key={p.sku} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
                 <td className="max-w-[260px] px-4 py-2.5">
                   <p className="truncate font-medium text-neutral-800 dark:text-neutral-100">{p.productName}</p>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">{p.sku}</p>
                 </td>
                 {hasCategory && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{p.category ?? '—'}</td>}
+                {hasPrice && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{formatCurrency(p.currentPrice, p.currency ?? analysis.currency)}</td>}
                 {hasSales && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{formatCurrency(p.revenueCurrent, analysis.currency)}</td>}
                 {hasSales && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{formatNumber(p.unitsCurrent)}</td>}
                 {hasInventory && <td className="px-4 py-2.5 text-neutral-600 dark:text-neutral-400">{formatNumber(p.availableInventory)}</td>}
@@ -159,7 +176,7 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                <td colSpan={9} className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
                   No products match the current filters.
                 </td>
               </tr>
@@ -167,6 +184,34 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
           </tbody>
         </table>
       </div>
+
+      {pageCount > 1 && (
+        <div className="flex items-center justify-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage <= 1}
+            aria-label="Previous page"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            Previous
+          </Button>
+          <span className="text-sm text-neutral-500 dark:text-neutral-400">
+            Page {currentPage} of {pageCount}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+            disabled={currentPage >= pageCount}
+            aria-label="Next page"
+          >
+            Next
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Button>
+        </div>
+      )}
 
       <ProductDetailDialog product={selectedProduct} currency={analysis.currency} onClose={() => setSelectedSku(null)} />
     </div>

@@ -53,6 +53,7 @@ export type ProductField =
   | 'reviewText'
   | 'productUrl'
   | 'imageUrl'
+  | 'currency'
 
 export type InventoryField =
   | 'sku'
@@ -129,6 +130,7 @@ export interface ProductRecord {
   reviewText?: string
   productUrl?: string
   imageUrl?: string
+  currency?: string
 }
 
 export interface InventoryRecord {
@@ -201,6 +203,10 @@ export interface ProductPerformance {
   reviewText?: string
   productUrl?: string
   imageUrl?: string
+  /** The product's own currency, from an optional per-row currency column in
+   * the catalog file. Falls back to the dataset-wide detected currency when
+   * absent — see AnalysisResult.currency. */
+  currency?: string
 
   hasSalesData: boolean
   hasInventoryData: boolean

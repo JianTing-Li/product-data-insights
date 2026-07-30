@@ -54,6 +54,7 @@ export function joinDatasets(input: JoinInput): JoinResult {
       reviewText: product?.reviewText,
       productUrl: product?.productUrl,
       imageUrl: product?.imageUrl,
+      currency: product?.currency,
 
       hasSalesData: salesAgg !== undefined,
       hasInventoryData: invAgg !== undefined,

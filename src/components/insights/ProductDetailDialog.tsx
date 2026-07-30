@@ -47,7 +47,7 @@ export function ProductDetailDialog({ product, currency, onClose }: ProductDetai
               <div>
                 <dt className="text-xs text-neutral-500 dark:text-neutral-400">Current price</dt>
                 <dd className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                  {formatCurrency(product.currentPrice, currency)}
+                  {formatCurrency(product.currentPrice, product.currency ?? currency)}
                 </dd>
               </div>
               <div>

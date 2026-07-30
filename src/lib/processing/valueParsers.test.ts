@@ -18,6 +18,18 @@ describe('parseCurrency', () => {
     expect(parseCurrency('₹1,00,000').value).toBeCloseTo(100000)
   })
 
+  it('parses scientific notation correctly (real Walmart export value)', () => {
+    expect(parseCurrency('2.290000000000000e+01').value).toBeCloseTo(22.9)
+  })
+
+  it('parses scientific notation with a larger exponent correctly', () => {
+    expect(parseCurrency('5.5e+03').value).toBeCloseTo(5500)
+  })
+
+  it('parses negative scientific notation correctly', () => {
+    expect(parseCurrency('-5.5e+03').value).toBeCloseTo(-5500)
+  })
+
   it('resolves European format (dot thousands, comma decimal)', () => {
     expect(parseCurrency('1.234,56').value).toBeCloseTo(1234.56)
   })

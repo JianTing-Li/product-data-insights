@@ -172,6 +172,11 @@ describe('price-integrity-risk signal', () => {
     expect(idsOf(generateProductSignals(p, { dataQuality: emptyDataQuality(), currency: 'USD' }))).not.toContain('price-integrity-risk')
   })
 
+  it('does not fire when original price is zero (a missing-value encoding, not a real $0 list price)', () => {
+    const p = product({ currentPrice: 45, originalPrice: 0 })
+    expect(idsOf(generateProductSignals(p, { dataQuality: emptyDataQuality(), currency: 'USD' }))).not.toContain('price-integrity-risk')
+  })
+
   it('fires when the average selling price deviates notably from the catalog price', () => {
     const p = product({ currentPrice: 100, revenueCurrent: 600, unitsCurrent: 10, hasSalesData: true }) // implied price 60
     expect(idsOf(generateProductSignals(p, { dataQuality: emptyDataQuality(), currency: 'USD' }))).toContain('price-integrity-risk')

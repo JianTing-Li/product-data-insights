@@ -81,6 +81,82 @@ describe('mapColumns', () => {
     expect(new Set(usedColumns).size).toBe(usedColumns.length)
   })
 
+  it('maps Walmart product export headers, including scientific-notation-prone final_price', () => {
+    const headers = [
+      'timestamp', 'url', 'final_price', 'sku', 'currency', 'gtin', 'specifications', 'image_urls',
+      'top_reviews', 'rating_stars', 'related_pages', 'available_for_delivery', 'available_for_pickup',
+      'brand', 'breadcrumbs', 'category_ids', 'review_count', 'description', 'product_id', 'product_name',
+      'review_tags', 'category_url', 'category_name', 'category_path', 'root_category_url',
+      'root_category_name', 'upc', 'tags', 'main_image', 'rating', 'unit_price', 'unit', 'aisle',
+      'free_returns', 'sizes', 'colors', 'seller', 'other_attributes', 'customer_reviews', 'ingredients',
+      'initial_price', 'discount', 'ingredients_full', 'categories',
+    ]
+    const mappings = mapColumns(headers, 'products')
+    expect(mappingFor(mappings, 'sku')).toMatchObject({ sourceColumn: 'sku', confidence: 'high' })
+    expect(mappingFor(mappings, 'productName')).toMatchObject({ sourceColumn: 'product_name', confidence: 'high' })
+    expect(mappingFor(mappings, 'currentPrice')).toMatchObject({ sourceColumn: 'final_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'originalPrice')).toMatchObject({ sourceColumn: 'initial_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'ratingCount')).toMatchObject({ sourceColumn: 'review_count', confidence: 'high' })
+  })
+
+  it('maps Shopee product export headers, including the bare "id" and "reviews" columns', () => {
+    const headers = [
+      'url', 'id', 'title', 'sold', 'rating', 'reviews', 'initial_price', 'final_price', 'currency',
+      'stock', 'favorite', 'image', 'video', 'seller_name', 'shop_url', 'breadcrumb', 'brand',
+      'category_id', 'domain', 'seller_id',
+    ]
+    const mappings = mapColumns(headers, 'products')
+    expect(mappingFor(mappings, 'sku')).toMatchObject({ sourceColumn: 'id', confidence: 'high' })
+    expect(mappingFor(mappings, 'productName')).toMatchObject({ sourceColumn: 'title', confidence: 'high' })
+    expect(mappingFor(mappings, 'currentPrice')).toMatchObject({ sourceColumn: 'final_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'originalPrice')).toMatchObject({ sourceColumn: 'initial_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'ratingCount')).toMatchObject({ sourceColumn: 'reviews', confidence: 'high' })
+    expect(mappingFor(mappings, 'category')).toMatchObject({ sourceColumn: 'breadcrumb', confidence: 'high' })
+  })
+
+  it('maps Shein product export headers, including reviews_count', () => {
+    const headers = [
+      'product_name', 'description', 'initial_price', 'final_price', 'currency', 'in_stock', 'color',
+      'size', 'reviews_count', 'main_image', 'category_url', 'url', 'category_tree', 'country_code',
+      'domain', 'product_id', 'rating', 'root_category', 'category', 'brand',
+    ]
+    const mappings = mapColumns(headers, 'products')
+    expect(mappingFor(mappings, 'sku')).toMatchObject({ sourceColumn: 'product_id', confidence: 'high' })
+    expect(mappingFor(mappings, 'productName')).toMatchObject({ sourceColumn: 'product_name', confidence: 'high' })
+    expect(mappingFor(mappings, 'currentPrice')).toMatchObject({ sourceColumn: 'final_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'originalPrice')).toMatchObject({ sourceColumn: 'initial_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'ratingCount')).toMatchObject({ sourceColumn: 'reviews_count', confidence: 'high' })
+  })
+
+  it('maps Lazada product export headers', () => {
+    const headers = [
+      'url', 'title', 'rating', 'reviews', 'initial_price', 'final_price', 'currency', 'image',
+      'seller_name', 'breadcrumb', 'product_specifications', 'product_description', 'sku', 'mpn',
+      'colors', 'brand', 'domain',
+    ]
+    const mappings = mapColumns(headers, 'products')
+    expect(mappingFor(mappings, 'sku')).toMatchObject({ sourceColumn: 'sku', confidence: 'high' })
+    expect(mappingFor(mappings, 'productName')).toMatchObject({ sourceColumn: 'title', confidence: 'high' })
+    expect(mappingFor(mappings, 'currentPrice')).toMatchObject({ sourceColumn: 'final_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'originalPrice')).toMatchObject({ sourceColumn: 'initial_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'ratingCount')).toMatchObject({ sourceColumn: 'reviews', confidence: 'high' })
+    expect(mappingFor(mappings, 'category')).toMatchObject({ sourceColumn: 'breadcrumb', confidence: 'high' })
+  })
+
+  it('maps the newer Amazon scraper export headers (asin-based)', () => {
+    const headers = [
+      'timestamp', 'title', 'seller_name', 'brand', 'description', 'initial_price', 'final_price',
+      'currency', 'availability', 'reviews_count', 'categories', 'asin', 'buybox_seller', 'domain',
+      'url', 'image_url', 'rating', 'discount', 'manufacturer', 'upc',
+    ]
+    const mappings = mapColumns(headers, 'products')
+    expect(mappingFor(mappings, 'sku')).toMatchObject({ sourceColumn: 'asin', confidence: 'high' })
+    expect(mappingFor(mappings, 'productName')).toMatchObject({ sourceColumn: 'title', confidence: 'high' })
+    expect(mappingFor(mappings, 'currentPrice')).toMatchObject({ sourceColumn: 'final_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'originalPrice')).toMatchObject({ sourceColumn: 'initial_price', confidence: 'high' })
+    expect(mappingFor(mappings, 'ratingCount')).toMatchObject({ sourceColumn: 'reviews_count', confidence: 'high' })
+  })
+
   it('supports multiple warehouse inventory headers', () => {
     const headers = ['SKU', 'Warehouse', 'Available Quantity', 'Reserved Quantity', 'Reorder Point']
     const mappings = mapColumns(headers, 'inventory')

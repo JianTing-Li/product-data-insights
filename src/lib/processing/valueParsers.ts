@@ -43,9 +43,19 @@ export function parseCurrency(raw: string | undefined | null): ParseResult<numbe
   return { value: negative ? -numeric : numeric }
 }
 
+const SCIENTIFIC_NOTATION_RE = /^\s*-?\d+(\.\d+)?[eE][+-]?\d+\s*$/
+
 /** Resolves a numeric string that may use either US (1,234.56) or European
- * (1.234,56) grouping/decimal conventions into a plain JS number. */
+ * (1.234,56) grouping/decimal conventions into a plain JS number. Scientific
+ * notation (e.g. "2.29e+01", which some spreadsheet exports produce for
+ * ordinary prices) is detected and handed to Number() directly — the
+ * comma/dot stripping below would otherwise destroy the "e"/"+" characters
+ * and silently produce a wildly wrong value instead of failing loudly. */
 function resolveNumericSeparators(s: string): number | null {
+  if (SCIENTIFIC_NOTATION_RE.test(s)) {
+    const value = Number(s.trim())
+    return Number.isNaN(value) ? null : value
+  }
   const negative = /^\s*-/.test(s)
   const cleaned = s.replace(/[^0-9.,]/g, '')
   if (cleaned === '') return null

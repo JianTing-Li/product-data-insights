@@ -1,29 +1,29 @@
 import { useState } from 'react'
-import { ShieldCheck, Sparkles } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 import { FileDropzone } from './FileDropzone'
 import { FileListItem } from './FileListItem'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useAnalysisStore } from '@/state/analysisStore'
 import { ingestFile } from '@/lib/processing/ingestFile'
-import { loadSampleFiles, type SampleDataKind } from '@/data/sampleFiles'
+import { loadSampleFiles, SAMPLE_COMPANIES, type SampleCompany } from '@/data/sampleFiles'
 
 export function AddDataStep() {
   const files = useAnalysisStore((s) => s.files)
   const addFiles = useAnalysisStore((s) => s.addFiles)
   const removeFile = useAnalysisStore((s) => s.removeFile)
   const setStep = useAnalysisStore((s) => s.setStep)
-  const [loadingSample, setLoadingSample] = useState<SampleDataKind | null>(null)
+  const [loadingSample, setLoadingSample] = useState<SampleCompany | null>(null)
 
   async function handleFiles(fileList: File[]) {
     const parsed = await Promise.all(fileList.map((f) => ingestFile(f, 'upload')))
     addFiles(parsed)
   }
 
-  async function handleUseSampleData(kind: SampleDataKind) {
-    setLoadingSample(kind)
+  async function handleUseSampleData(company: SampleCompany) {
+    setLoadingSample(company)
     try {
-      const sample = await loadSampleFiles(kind)
+      const sample = await loadSampleFiles(company)
       addFiles(sample)
     } finally {
       setLoadingSample(null)
@@ -57,28 +57,22 @@ export function AddDataStep() {
       </div>
 
       <div className="flex flex-col items-center gap-3">
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => handleUseSampleData('full')}
-            disabled={loadingSample !== null}
-          >
-            <Sparkles className="h-4 w-4" aria-hidden="true" />
-            {loadingSample === 'full' ? 'Loading…' : 'Full analysis sample'}
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => handleUseSampleData('catalog-only')}
-            disabled={loadingSample !== null}
-          >
-            <Sparkles className="h-4 w-4" aria-hidden="true" />
-            {loadingSample === 'catalog-only' ? 'Loading…' : 'Amazon catalog only'}
-          </Button>
+        <div className="flex flex-wrap items-center justify-center gap-2" role="group" aria-label="Try sample data">
+          {SAMPLE_COMPANIES.map((company) => (
+            <Button
+              key={company.value}
+              variant="secondary"
+              size="sm"
+              onClick={() => handleUseSampleData(company.value)}
+              disabled={loadingSample !== null}
+            >
+              {loadingSample === company.value ? 'Loading…' : company.label}
+            </Button>
+          ))}
         </div>
         <p className="max-w-md text-center text-xs text-neutral-500 dark:text-neutral-400">
-          Both use real Amazon product data. The full sample adds illustrative sales and inventory
-          numbers so you can see the complete dashboard; the catalog-only sample is unmodified real
-          data with no invented numbers.
+          Each sample uses that company's real product catalog data, paired with illustrative sales
+          and inventory numbers so you can see the complete dashboard.
         </p>
       </div>
 

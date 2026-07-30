@@ -147,6 +147,7 @@ export function validateProductRows(rows: RawRow[], mappings: ColumnMapping[], f
       reviewText: getMappedText(raw, mappings, 'reviewText') ?? undefined,
       productUrl: getMappedText(raw, mappings, 'productUrl') ?? undefined,
       imageUrl: getMappedText(raw, mappings, 'imageUrl') ?? undefined,
+      currency: getMappedText(raw, mappings, 'currency') ?? undefined,
     }
 
     return { rowIndex, fileId, acceptance: issues.length > 0 ? 'warning' : 'accepted', issues, raw, value }

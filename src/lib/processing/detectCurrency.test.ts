@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { detectCurrency } from './detectCurrency'
+import { detectCurrency, detectCurrencyFromRecords } from './detectCurrency'
 import type { SalesRecord } from './types'
 
 function sale(currency?: string): SalesRecord {
@@ -29,5 +29,15 @@ describe('detectCurrency', () => {
 
   it('ignores unrecognized values', () => {
     expect(detectCurrency([sale('not-a-currency')])).toBe('USD')
+  })
+})
+
+describe('detectCurrencyFromRecords', () => {
+  it('returns null (not USD) when nothing is detected, so callers can chain a fallback', () => {
+    expect(detectCurrencyFromRecords([sale(), sale()])).toBeNull()
+  })
+
+  it('works on plain objects with just a currency field (e.g. product records)', () => {
+    expect(detectCurrencyFromRecords([{ currency: 'MXN' }, { currency: 'MXN' }, { currency: 'USD' }])).toBe('MXN')
   })
 })

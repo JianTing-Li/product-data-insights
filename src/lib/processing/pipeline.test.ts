@@ -31,9 +31,9 @@ function loadAsAddedFile(filename: string): { file: AddedFile; mapping: FileMapp
 }
 
 describe('runPipeline (integration, real sample data)', () => {
-  const sales = loadAsAddedFile('full-sales.csv')
-  const products = loadAsAddedFile('full-products.csv')
-  const inventory = loadAsAddedFile('full-inventory.csv')
+  const sales = loadAsAddedFile('amazon-sales.csv')
+  const products = loadAsAddedFile('amazon-products.csv')
+  const inventory = loadAsAddedFile('amazon-inventory.csv')
 
   const files = [sales.file, products.file, inventory.file]
   const mappings: Record<string, FileMapping> = {
@@ -70,7 +70,7 @@ describe('runPipeline (integration, real sample data)', () => {
 
   it('flags the seeded unmatched product ID from the sales file', () => {
     const result = runPipeline(files, mappings, 7)
-    expect(result.dataQuality.unmatchedProductIds).toContainEqual({ sku: 'B000UNKNOWN99', source: 'sales' })
+    expect(result.dataQuality.unmatchedProductIds).toContainEqual({ sku: 'AMAZON-UNKNOWN-999', source: 'sales' })
   })
 
   it('flags the seeded product with no inventory record', () => {
@@ -114,18 +114,37 @@ describe('runPipeline (integration, real sample data)', () => {
   })
 
   it('reports catalog-only mode when only the product file is present', () => {
-    const catalogOnly = loadAsAddedFile('catalog-only-products.csv')
+    const catalogOnly = loadAsAddedFile('amazon-products.csv')
     const result = runPipeline([catalogOnly.file], { [catalogOnly.file.id]: catalogOnly.mapping }, 7)
     expect(result.mode).toBe('catalog-only')
     expect(result.period).toBeNull()
     expect(result.products.length).toBeGreaterThan(0)
   })
 
-  it('surfaces the naturally malformed rating field from the real catalog-only file as accepted-with-warning, not silently dropped', () => {
-    const catalogOnly = loadAsAddedFile('catalog-only-products.csv')
-    const result = runPipeline([catalogOnly.file], { [catalogOnly.file.id]: catalogOnly.mapping }, 7)
-    const flagged = result.products.find((p) => p.sku === 'B08L12N5H1')
-    expect(flagged).toBeDefined()
-    expect(flagged?.rating).toBeUndefined()
+  it('falls back to the product catalog currency when there is no sales data at all', () => {
+    const headers = ['product_id', 'product_name', 'final_price', 'currency']
+    const rows = [
+      { product_id: 'A', product_name: 'Widget', final_price: '868', currency: 'MXN' },
+      { product_id: 'B', product_name: 'Gadget', final_price: '199', currency: 'MXN' },
+    ]
+    const detection = detectDatasetKind(headers)
+    const file: AddedFile = {
+      id: 'synthetic-products',
+      filename: 'synthetic-products.csv',
+      source: 'upload',
+      sizeBytes: 100,
+      status: 'parsed',
+      datasetKind: detection.kind,
+      detectionConfidence: detection.confidence,
+      headers,
+      rowCount: rows.length,
+      rows,
+      parseIssues: [],
+    }
+    const mapping = createFileMapping(file.id, detection.kind, headers)
+    const result = runPipeline([file], { [file.id]: mapping }, 7)
+    expect(result.mode).toBe('catalog-only')
+    expect(result.currency).toBe('MXN')
+    expect(result.products.find((p) => p.sku === 'A')?.currency).toBe('MXN')
   })
 })

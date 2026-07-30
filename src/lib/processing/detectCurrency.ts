@@ -1,5 +1,3 @@
-import type { SalesRecord } from './types'
-
 const SYMBOL_TO_CODE: Record<string, string> = {
   '₹': 'INR',
   $: 'USD',
@@ -17,10 +15,11 @@ function normalize(raw: string): string | null {
   return VALID_CODE_RE.test(upper) ? upper : null
 }
 
-/** Detects which currency the sales data is denominated in from the
- * optional `currency` column, so amounts aren't displayed with the wrong
- * symbol. Falls back to USD when no currency information is present. */
-export function detectCurrency(records: SalesRecord[]): string {
+/** Finds the most common currency across any records with an optional
+ * `currency` field (sales or product rows), or null if none had usable
+ * currency information. Exposed separately from detectCurrency so callers
+ * can chain multiple sources with their own final fallback. */
+export function detectCurrencyFromRecords(records: { currency?: string }[]): string | null {
   const counts = new Map<string, number>()
   for (const record of records) {
     if (!record.currency) continue
@@ -38,5 +37,12 @@ export function detectCurrency(records: SalesRecord[]): string {
     }
   }
 
-  return best ?? 'USD'
+  return best
+}
+
+/** Detects which currency the sales data is denominated in from the
+ * optional `currency` column, so amounts aren't displayed with the wrong
+ * symbol. Falls back to USD when no currency information is present. */
+export function detectCurrency(records: { currency?: string }[]): string {
+  return detectCurrencyFromRecords(records) ?? 'USD'
 }
