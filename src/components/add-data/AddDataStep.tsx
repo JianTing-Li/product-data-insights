@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ShieldCheck } from 'lucide-react'
+import { CheckCircle2, ShieldCheck } from 'lucide-react'
 import { FileDropzone } from './FileDropzone'
 import { FileListItem } from './FileListItem'
 import { Button } from '@/components/ui/Button'
@@ -12,6 +12,7 @@ export function AddDataStep() {
   const files = useAnalysisStore((s) => s.files)
   const addFiles = useAnalysisStore((s) => s.addFiles)
   const removeFile = useAnalysisStore((s) => s.removeFile)
+  const clearFiles = useAnalysisStore((s) => s.clearFiles)
   const setStep = useAnalysisStore((s) => s.setStep)
   const [loadingSample, setLoadingSample] = useState<SampleCompany | null>(null)
 
@@ -24,6 +25,7 @@ export function AddDataStep() {
     setLoadingSample(company)
     try {
       const sample = await loadSampleFiles(company)
+      clearFiles()
       addFiles(sample)
     } finally {
       setLoadingSample(null)
@@ -31,6 +33,13 @@ export function AddDataStep() {
   }
 
   const canContinue = files.some((f) => f.status === 'parsed')
+  const filenamesPreview =
+    files.length > 3
+      ? `${files
+          .slice(0, 3)
+          .map((f) => f.filename)
+          .join(', ')}, +${files.length - 3} more`
+      : files.map((f) => f.filename).join(', ')
 
   return (
     <div className="flex flex-col gap-6">
@@ -50,13 +59,49 @@ export function AddDataStep() {
 
       <FileDropzone onFiles={handleFiles} />
 
+      {files.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-success-500/30 bg-success-50 px-4 py-2.5 dark:border-success-500/20 dark:bg-success-500/10">
+          <div className="flex min-w-0 items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-success-600 dark:text-success-500" aria-hidden="true" />
+            <p className="truncate text-sm text-neutral-800 dark:text-neutral-100">
+              <span className="font-medium">
+                {files.length} file{files.length === 1 ? '' : 's'} added
+              </span>
+              {' · '}
+              {filenamesPreview}
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" className="shrink-0" onClick={clearFiles}>
+            Clear files
+          </Button>
+        </div>
+      )}
+
+      {files.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            Added files ({files.length})
+          </h3>
+          <ul className="flex flex-col gap-2">
+            {files.map((file) => (
+              <FileListItem key={file.id} file={file} onRemove={removeFile} />
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="flex items-center justify-center gap-3">
         <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" aria-hidden="true" />
-        <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">or try sample data</span>
+        <span className="text-sm font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+          or try sample data
+        </span>
         <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" aria-hidden="true" />
       </div>
 
       <div className="flex flex-col items-center gap-3">
+        <p className="max-w-md text-center text-sm text-neutral-600 dark:text-neutral-400">
+          Don't have files handy? Try a sample dataset from a real company.
+        </p>
         <div className="flex flex-wrap items-center justify-center gap-2" role="group" aria-label="Try sample data">
           {SAMPLE_COMPANIES.map((company) => (
             <Button
@@ -75,19 +120,6 @@ export function AddDataStep() {
           and inventory numbers so you can see the complete dashboard.
         </p>
       </div>
-
-      {files.length > 0 && (
-        <div>
-          <h3 className="mb-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            Added files ({files.length})
-          </h3>
-          <ul className="flex flex-col gap-2">
-            {files.map((file) => (
-              <FileListItem key={file.id} file={file} onRemove={removeFile} />
-            ))}
-          </ul>
-        </div>
-      )}
 
       <div className="flex justify-end border-t border-neutral-200 pt-6 dark:border-neutral-800">
         <Button disabled={!canContinue} onClick={() => setStep(2)}>

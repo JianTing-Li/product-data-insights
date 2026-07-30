@@ -39,7 +39,7 @@ export function Dialog({ open, onOpenChange, title, description, children, class
                 aria-label="Close"
                 className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </RadixDialog.Close>
           </div>

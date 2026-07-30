@@ -30,6 +30,7 @@ interface AnalysisState {
   addFiles: (files: AddedFile[]) => void
   updateFile: (id: string, patch: Partial<AddedFile>) => void
   removeFile: (id: string) => void
+  clearFiles: () => void
   setFileMapping: (mapping: FileMapping) => void
   setAnalysis: (result: AnalysisResult) => void
   setIsAnalyzing: (value: boolean) => void
@@ -65,6 +66,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         fileMappings: rest,
       }
     }),
+  clearFiles: () => set({ files: [], fileMappings: {} }),
   setFileMapping: (mapping) =>
     set((state) => ({
       fileMappings: { ...state.fileMappings, [mapping.fileId]: mapping },

@@ -28,7 +28,7 @@ export function Select({ value, onValueChange, options, placeholder, ariaLabel, 
       >
         <RadixSelect.Value placeholder={placeholder} />
         <RadixSelect.Icon>
-          <ChevronDown className="h-4 w-4 text-neutral-400" />
+          <ChevronDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
         </RadixSelect.Icon>
       </RadixSelect.Trigger>
       <RadixSelect.Portal>
@@ -42,7 +42,7 @@ export function Select({ value, onValueChange, options, placeholder, ariaLabel, 
               >
                 <RadixSelect.ItemText>{option.label}</RadixSelect.ItemText>
                 <RadixSelect.ItemIndicator>
-                  <Check className="h-3.5 w-3.5" />
+                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
                 </RadixSelect.ItemIndicator>
               </RadixSelect.Item>
             ))}

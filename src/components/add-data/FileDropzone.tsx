@@ -56,6 +56,8 @@ export function FileDropzone({ onFiles }: FileDropzoneProps) {
         type="file"
         accept=".csv,text/csv"
         multiple
+        tabIndex={-1}
+        aria-hidden="true"
         className="sr-only"
         onChange={(e) => {
           const files = Array.from(e.target.files ?? [])

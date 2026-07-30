@@ -107,7 +107,7 @@ export function DataQualityView({ report }: { report: DataQualityReport }) {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {sections.map((s) => (
-          <Card key={s.key} className="flex flex-col gap-2 p-4">
+          <Card key={s.key} className="flex flex-col gap-2 p-4" data-testid={`data-quality-card-${s.key}`}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">

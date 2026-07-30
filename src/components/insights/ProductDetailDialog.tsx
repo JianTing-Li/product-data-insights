@@ -38,7 +38,11 @@ export function ProductDetailDialog({ product, currency, onClose }: ProductDetai
           {/* Summary */}
           <section aria-label="Summary" className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              {product.category && <Badge tone="neutral">{product.category}</Badge>}
+              {product.category && (
+                <Badge tone="neutral" className="max-w-full truncate" title={product.category}>
+                  {product.category}
+                </Badge>
+              )}
               {product.primarySignal && (
                 <Badge tone={severityTone[product.primarySignal.severity]}>{product.primarySignal.title}</Badge>
               )}
