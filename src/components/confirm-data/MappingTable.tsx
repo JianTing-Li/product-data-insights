@@ -28,7 +28,7 @@ export function MappingTable({
                   {field.required && <span className="ml-1 text-xs text-neutral-400">required</span>}
                 </td>
                 <td className="px-3 py-2 text-neutral-600 dark:text-neutral-400">
-                  {mapping?.sourceColumn ?? <span className="italic text-neutral-400">not mapped</span>}
+                  {mapping?.sourceColumn ?? <span className="italic text-neutral-400">n/a</span>}
                 </td>
                 <td className="px-3 py-2">
                   <Badge
@@ -42,7 +42,7 @@ export function MappingTable({
                             : 'neutral'
                     }
                   >
-                    {mapping?.confidence === 'none' || !mapping ? 'unmapped' : mapping.confidence}
+                    {mapping?.confidence === 'none' || !mapping ? 'n/a' : mapping.confidence}
                   </Badge>
                 </td>
               </tr>

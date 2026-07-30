@@ -79,12 +79,12 @@ export function FileConfirmCard({ file, mapping, onMappingChange, onDatasetKindC
       )}
 
       <div className="mt-4 flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
-        <Collapsible trigger="View full column mapping">
+        <Collapsible trigger="Full Column Mapping">
           <div className="pb-3 pt-1">
             <MappingTable fields={fields} mappings={mapping.mappings} />
           </div>
         </Collapsible>
-        <Collapsible trigger="Preview raw data">
+        <Collapsible trigger="Raw Data">
           <div className="pb-1 pt-1">
             <RawPreview headers={file.headers} rows={file.rows.slice(0, 8)} />
           </div>

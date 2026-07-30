@@ -60,10 +60,10 @@ export function AddDataStep() {
       <FileDropzone onFiles={handleFiles} />
 
       {files.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-success-500/30 bg-success-50 px-4 py-2.5 dark:border-success-500/20 dark:bg-success-500/10">
+        <div className="animate-fade-in flex items-center justify-between gap-3 rounded-lg border border-success-500/30 bg-success-50 px-4 py-2.5 dark:border-success-500/20 dark:bg-success-500/10">
           <div className="flex min-w-0 items-center gap-2">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-success-600 dark:text-success-500" aria-hidden="true" />
-            <p className="truncate text-sm text-neutral-800 dark:text-neutral-100">
+            <p className="min-w-0 truncate text-sm text-neutral-800 dark:text-neutral-100">
               <span className="font-medium">
                 {files.length} file{files.length === 1 ? '' : 's'} added
               </span>
@@ -71,7 +71,7 @@ export function AddDataStep() {
               {filenamesPreview}
             </p>
           </div>
-          <Button variant="ghost" size="sm" className="shrink-0" onClick={clearFiles}>
+          <Button variant="secondary" size="sm" className="shrink-0" onClick={clearFiles}>
             Clear files
           </Button>
         </div>

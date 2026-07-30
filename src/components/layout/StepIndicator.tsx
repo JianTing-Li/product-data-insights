@@ -13,6 +13,7 @@ export function StepIndicator({ current }: { current: Step }) {
     <ol className="flex items-center gap-2 sm:gap-4" aria-label="Analysis progress">
       {steps.map(({ step, label }, index) => {
         const state = step < current ? 'done' : step === current ? 'current' : 'upcoming'
+        const isActiveFinalStep = step === 3 && state === 'current'
         return (
           <li key={step} className="flex items-center gap-2 sm:gap-4">
             <div className="flex items-center gap-2">
@@ -20,8 +21,8 @@ export function StepIndicator({ current }: { current: Step }) {
                 aria-hidden="true"
                 className={cn(
                   'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors duration-200',
-                  state === 'done' && 'bg-accent-600 text-white',
-                  state === 'current' && 'bg-accent-100 text-accent-700 ring-2 ring-accent-500 dark:bg-accent-900/50 dark:text-accent-200',
+                  (state === 'done' || isActiveFinalStep) && 'bg-accent-600 text-white',
+                  state === 'current' && !isActiveFinalStep && 'bg-accent-100 text-accent-700 ring-2 ring-accent-500 dark:bg-accent-900/50 dark:text-accent-200',
                   state === 'upcoming' && 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500',
                 )}
               >

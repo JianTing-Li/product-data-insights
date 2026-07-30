@@ -78,8 +78,8 @@ export function ConfirmDataStep() {
       </div>
 
       <div className="flex items-center justify-between border-t border-neutral-200 pt-6 dark:border-neutral-800">
-        <Button variant="ghost" onClick={() => setStep(1)}>
-          Back to add data
+        <Button variant="secondary" onClick={() => setStep(1)}>
+          ← Back
         </Button>
         <Button onClick={handleAnalyze} disabled={isAnalyzing || !canAnalyze}>
           {isAnalyzing ? 'Analyzing…' : 'Analyze products'}
