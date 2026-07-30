@@ -1,6 +1,5 @@
-import { ArrowRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { severityTone } from './signalPresentation'
 import type { ProductPerformance } from '@/lib/processing/types'
@@ -15,8 +14,25 @@ export function ProductAttentionCard({ product, onInspect }: ProductAttentionCar
   if (!signal) return null
 
   return (
-    <Card className="flex flex-col gap-3 p-4">
-      <div className="flex items-start justify-between gap-3">
+    <Card
+      role="button"
+      tabIndex={0}
+      aria-label={`Inspect ${product.productName}`}
+      onClick={() => onInspect(product.sku)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onInspect(product.sku)
+        }
+      }}
+      className="relative flex cursor-pointer flex-col gap-3 p-4 transition-[box-shadow,border-color] duration-150 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700"
+    >
+      <ChevronRight
+        className="absolute right-3 top-3 h-4 w-4 text-neutral-300 dark:text-neutral-600"
+        aria-hidden="true"
+      />
+
+      <div className="flex items-start justify-between gap-3 pr-5">
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
             {product.productName}
@@ -26,26 +42,14 @@ export function ProductAttentionCard({ product, onInspect }: ProductAttentionCar
         <Badge tone={severityTone[signal.severity]}>{signal.title}</Badge>
       </div>
 
-      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <dl className="flex flex-wrap gap-x-4 gap-y-1">
         {signal.supportingValues.slice(0, 3).map((sv) => (
-          <div key={sv.label} className="rounded-md bg-neutral-50 px-2.5 py-1.5 dark:bg-neutral-800/60">
-            <dt className="text-[11px] text-neutral-500 dark:text-neutral-400">{sv.label}</dt>
-            <dd className="text-sm font-medium text-neutral-800 dark:text-neutral-100">{sv.value}</dd>
+          <div key={sv.label} className="flex items-baseline gap-1 text-sm">
+            <dt className="text-neutral-500 dark:text-neutral-400">{sv.label}:</dt>
+            <dd className="font-medium text-neutral-800 dark:text-neutral-100">{sv.value}</dd>
           </div>
         ))}
       </dl>
-
-      <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        <span className="font-medium text-neutral-700 dark:text-neutral-300">Suggested: </span>
-        {signal.suggestedInvestigation}
-      </p>
-
-      <div className="mt-1 flex justify-end">
-        <Button variant="secondary" size="sm" onClick={() => onInspect(product.sku)}>
-          Inspect product
-          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </Button>
-      </div>
     </Card>
   )
 }
