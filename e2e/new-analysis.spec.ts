@@ -20,5 +20,5 @@ test('new analysis cancellation and confirmation', async ({ page }) => {
   await page.getByRole('button', { name: 'New analysis' }).click()
   await page.getByRole('button', { name: 'Start new analysis' }).click()
   await expect(page.getByRole('heading', { name: 'Add your data' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Continue to confirm data' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Confirm data' })).toBeDisabled()
 })

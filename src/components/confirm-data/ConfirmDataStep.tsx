@@ -82,7 +82,7 @@ export function ConfirmDataStep() {
           ← Back
         </Button>
         <Button onClick={handleAnalyze} disabled={isAnalyzing || !canAnalyze}>
-          {isAnalyzing ? 'Analyzing…' : 'Analyze products'}
+          {isAnalyzing ? 'Analyzing…' : 'Analyze'}
         </Button>
       </div>
     </div>

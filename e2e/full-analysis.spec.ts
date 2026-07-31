@@ -17,7 +17,8 @@ test('full product, sales, and inventory analysis', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Highest-priority products' })).toBeVisible()
 
   // Open a product detail and walk through progressive disclosure.
-  await page.getByRole('button', { name: 'Inspect product' }).first().click()
+  // Accessible name is "Inspect <product name>", not a fixed generic string.
+  await page.getByRole('button', { name: /^Inspect / }).first().click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   await expect(dialog.getByText(/Evidence — all signals/)).toBeVisible()

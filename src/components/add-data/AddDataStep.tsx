@@ -135,16 +135,15 @@ export function AddDataStep() {
           ))}
         </div>
         <p className="max-w-md text-center text-xs text-neutral-500 dark:text-neutral-400">
-          Product catalog data in every sample is real. Walmart, Shopee, and Shein also include
-          illustrative sales and inventory numbers so you can see the complete dashboard. Amazon's
-          sample is the original file, unmodified — no sales or inventory data, so it shows the
-          catalog-only view.
+          All product catalog data is real. Walmart, Shopee, and Shein add synthetic
+          sales/inventory numbers to preview the full dashboard. Amazon and Lazada are
+          unmodified originals — catalog only.
         </p>
       </div>
 
       <div className="flex justify-end border-t border-neutral-200 pt-6 dark:border-neutral-800">
         <Button disabled={!canContinue} onClick={() => setStep(2)}>
-          Continue to confirm data
+          Confirm data
         </Button>
       </div>
     </div>

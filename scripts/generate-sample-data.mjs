@@ -5,14 +5,15 @@
 // the repo.
 //
 // For each company in COMPANIES, produces:
-//   public/sample-data/{company}-products.csv   — ~14 curated real rows, verbatim
+//   public/sample-data/{company}-products.csv   — up to 300 curated real rows, verbatim
 //   public/sample-data/{company}-sales.csv      — illustrative, keyed to the real product IDs above
 //   public/sample-data/{company}-inventory.csv  — illustrative, keyed to the real product IDs above
 //
-// Amazon is a deliberate exception (see AMAZON_SOURCE_PATH below): its
-// products file is copied byte-for-byte with no curation and gets no
-// sales/inventory files at all, so it stays a fully real, catalog-only
-// sample rather than a real-catalog-plus-fabricated-activity one.
+// Amazon and Lazada are deliberate exceptions (see VERBATIM_COMPANIES
+// below): their products files are copied byte-for-byte with no curation
+// and get no sales/inventory files at all, so they stay fully real,
+// catalog-only samples rather than real-catalog-plus-fabricated-activity
+// ones.
 
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -22,7 +23,11 @@ const OUT_DIR = fileURLToPath(new URL('../public/sample-data/', import.meta.url)
 mkdirSync(OUT_DIR, { recursive: true })
 
 const DATASET_DIR = '/Users/jt/Downloads/eCommerce-dataset-samples-main'
-const AMAZON_SOURCE_PATH = '/Users/jt/Downloads/amazon.csv'
+
+const VERBATIM_COMPANIES = [
+  { key: 'amazon', sourcePath: '/Users/jt/Downloads/amazon.csv' },
+  { key: 'lazada', sourcePath: `${DATASET_DIR}/lazada-products.csv` },
+]
 
 const COMPANIES = [
   {
@@ -184,7 +189,7 @@ function generateCompany(cfg) {
   const mustIncludeRows = (cfg.mustInclude ?? []).map((id) => byId.get(id)).filter(Boolean)
   const anchors = mustIncludeRows.length > 0 ? mustIncludeRows : pickAutoAnchors(cleanRows, cfg)
   const categoryKeyFn = cfg.categoryKeyFn ?? ((row) => (row[cfg.categoryCol] || 'Uncategorized').slice(0, 60))
-  const curated = stratifiedSample(cleanRows, 14, anchors, categoryKeyFn)
+  const curated = stratifiedSample(cleanRows, 300, anchors, categoryKeyFn)
 
   // Deliberate data-quality fixture: a conflicting duplicate product record —
   // the same real product ID reappearing with a different price/rating.
@@ -219,11 +224,16 @@ function generateCompany(cfg) {
   const startDate = new Date('2026-07-15T00:00:00Z')
   const dateStr = (d) => d.toISOString().slice(0, 10)
 
+  // Order volume is sized for the original 14-product catalog; scale it up
+  // with the actual product count so a bigger catalog doesn't just thin out
+  // per-product sales history.
+  const orderScale = products.length / 14
+
   for (let day = 0; day < 14; day++) {
     const date = new Date(startDate)
     date.setUTCDate(date.getUTCDate() + day)
     const isCurrentPeriod = day >= 7
-    const ordersToday = 8 + Math.floor(rand() * 6)
+    const ordersToday = Math.round((8 + rand() * 6) * orderScale)
 
     for (let o = 0; o < ordersToday; o++) {
       orderNum++
@@ -262,21 +272,23 @@ for (const cfg of COMPANIES) {
   generateCompany(cfg)
 }
 
-/** Amazon exception: copies the real product export as-is, no curation and
- * no fabricated sales/inventory — a fully real, catalog-only sample. */
-function copyAmazonProductsVerbatim() {
-  console.log('\n=== amazon (verbatim, catalog-only) ===')
+/** Copies a real product export as-is, no curation and no fabricated
+ * sales/inventory — a fully real, catalog-only sample. */
+function copyVerbatimCatalogOnly(key, sourcePath) {
+  console.log(`\n=== ${key} (verbatim, catalog-only) ===`)
   try {
-    copyFileSync(AMAZON_SOURCE_PATH, OUT_DIR + 'amazon-products.csv')
-    const rowCount = readFileSync(AMAZON_SOURCE_PATH, 'utf8').trim().split('\n').length - 1
-    console.log(`wrote amazon-products.csv: ${rowCount} rows (byte-for-byte copy of ${AMAZON_SOURCE_PATH})`)
+    copyFileSync(sourcePath, OUT_DIR + `${key}-products.csv`)
+    const rowCount = readFileSync(sourcePath, 'utf8').trim().split('\n').length - 1
+    console.log(`wrote ${key}-products.csv: ${rowCount} rows (byte-for-byte copy of ${sourcePath})`)
   } catch (err) {
     if (err.code === 'ENOENT') {
-      console.warn(`Skipping amazon: source file not found at ${AMAZON_SOURCE_PATH}`)
+      console.warn(`Skipping ${key}: source file not found at ${sourcePath}`)
     } else {
       throw err
     }
   }
 }
 
-copyAmazonProductsVerbatim()
+for (const { key, sourcePath } of VERBATIM_COMPANIES) {
+  copyVerbatimCatalogOnly(key, sourcePath)
+}

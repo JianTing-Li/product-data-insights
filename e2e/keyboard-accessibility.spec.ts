@@ -19,7 +19,7 @@ test('keyboard operability of the Add Data step', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /Added files/ })).toBeVisible()
 
   // Continue button is keyboard-reachable and Enter-activatable.
-  await page.getByRole('button', { name: 'Continue to confirm data' }).focus()
+  await page.getByRole('button', { name: 'Confirm data' }).focus()
   await page.keyboard.press('Enter')
   await expect(page.getByRole('heading', { name: 'Confirm your data' })).toBeVisible()
 })
@@ -27,10 +27,11 @@ test('keyboard operability of the Add Data step', async ({ page }) => {
 test('Escape closes the product detail dialog', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Walmart', exact: true }).click()
-  await page.getByRole('button', { name: 'Continue to confirm data' }).click()
-  await page.getByRole('button', { name: 'Analyze products' }).click()
+  await page.getByRole('button', { name: 'Confirm data' }).click()
+  await page.getByRole('button', { name: 'Analyze' }).click()
 
-  await page.getByRole('button', { name: 'Inspect product' }).first().click()
+  // Accessible name is "Inspect <product name>", not a fixed generic string.
+  await page.getByRole('button', { name: /^Inspect / }).first().click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   await page.keyboard.press('Escape')

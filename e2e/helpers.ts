@@ -16,12 +16,12 @@ export async function loadAmazonSample(page: Page) {
 }
 
 export async function continueToConfirm(page: Page) {
-  await page.getByRole('button', { name: 'Continue to confirm data' }).click()
+  await page.getByRole('button', { name: 'Confirm data' }).click()
   await expect(page.getByRole('heading', { name: 'Confirm your data' })).toBeVisible()
 }
 
 export async function analyze(page: Page) {
-  await page.getByRole('button', { name: 'Analyze products' }).click()
+  await page.getByRole('button', { name: 'Analyze' }).click()
   await expect(page.getByRole('tab', { name: 'Overview' })).toBeVisible()
 }
 

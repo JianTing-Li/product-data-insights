@@ -10,7 +10,7 @@ test('invalid CSV recovery', async ({ page }) => {
     buffer: Buffer.from('this is not a csv, just plain text with no commas'),
   })
   await expect(page.getByText(/No columns could be detected|No data rows were found/)).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Continue to confirm data' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Confirm data' })).toBeDisabled()
 
   // An empty CSV file: no header row at all.
   await page.locator('input[type="file"]').setInputFiles({
@@ -19,16 +19,21 @@ test('invalid CSV recovery', async ({ page }) => {
     buffer: Buffer.from(''),
   })
   await expect(page.getByText(/No columns could be detected/)).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Continue to confirm data' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Confirm data' })).toBeDisabled()
 
-  // Recovery: adding a real sample afterward still works, error files remain listed.
+  // Recovery: picking a sample instead replaces the invalid files entirely —
+  // selecting a company sample always gives a clean, single-company slate
+  // rather than mixing in unrelated (or broken) previously-added files.
   await page.getByRole('button', { name: 'Walmart', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Continue to confirm data' })).toBeEnabled()
-  await expect(page.getByText('notes.txt')).toBeVisible()
-  await expect(page.getByText('empty.csv')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Confirm data' })).toBeEnabled()
+  await expect(page.getByText('notes.txt', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('empty.csv', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('walmart-sales.csv', { exact: true })).toBeVisible()
+  await expect(page.getByText('walmart-products.csv', { exact: true })).toBeVisible()
+  await expect(page.getByText('walmart-inventory.csv', { exact: true })).toBeVisible()
 
-  await page.getByRole('button', { name: 'Continue to confirm data' }).click()
+  await page.getByRole('button', { name: 'Confirm data' }).click()
   await expect(page.getByRole('heading', { name: 'Confirm your data' })).toBeVisible()
-  // The unreadable files are skipped, not silently lost — the user is told.
-  await expect(page.getByText(/couldn't be read and will be skipped/)).toBeVisible()
+  // The invalid files were cleared, not carried forward, so there's nothing to skip.
+  await expect(page.getByText(/couldn't be read and will be skipped/)).toHaveCount(0)
 })
