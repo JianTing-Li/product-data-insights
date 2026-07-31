@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+
+  --color-accent-50: #f2f6ff;
+  --color-accent-100: #e3ecff;
+  --color-accent-200: #c6d8ff;
+  --color-accent-300: #9fb9ff;
+  --color-accent-400: #7295f5;
+  --color-accent-500: #4f6fe0;
+  --color-accent-600: #3c54c0;
+  --color-accent-700: #32439b;
+  --color-accent-800: #2b377c;
+  --color-accent-900: #263065;
+
+  --color-success-50: #f0faf3;
+  --color-success-500: #2f9e5e;
+  --color-success-600: #24824b;
+
+  --color-warning-50: #fdf8ee;
+  --color-warning-500: #b8791a;
+  --color-warning-600: #96620f;
+
+  --color-danger-50: #fdf2f2;
+  --color-danger-500: #c94141;
+  --color-danger-600: #a83333;
+
+  --color-coral-400: #ff8a72;
+  --color-coral-500: #f0603f;
+  --color-coral-600: #d6472a;
+
+  --animate-fade-in: fade-in 200ms ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-800 antialiased;
+    font-feature-settings: "cv11";
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent-500;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply bg-neutral-950 text-neutral-100;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
