@@ -3,7 +3,7 @@ import { loadSampleAndAnalyze } from './helpers'
 
 test('new analysis cancellation and confirmation', async ({ page }) => {
   await page.goto('/')
-  await loadSampleAndAnalyze(page, 'Amazon')
+  await loadSampleAndAnalyze(page, 'Walmart')
 
   await expect(page.getByRole('tab', { name: 'Overview' })).toBeVisible()
 

@@ -30,9 +30,9 @@ function loadAsAddedFile(filename: string): { file: AddedFile; mapping: FileMapp
 }
 
 describe('runFullAnalysis (integration, real sample data)', () => {
-  const sales = loadAsAddedFile('amazon-sales.csv')
-  const products = loadAsAddedFile('amazon-products.csv')
-  const inventory = loadAsAddedFile('amazon-inventory.csv')
+  const sales = loadAsAddedFile('walmart-sales.csv')
+  const products = loadAsAddedFile('walmart-products.csv')
+  const inventory = loadAsAddedFile('walmart-inventory.csv')
   const files = [sales.file, products.file, inventory.file]
   const mappings: Record<string, FileMapping> = {
     [sales.file.id]: sales.mapping,
@@ -49,20 +49,20 @@ describe('runFullAnalysis (integration, real sample data)', () => {
 
   it('flags the seeded out-of-stock product with a primary out-of-stock signal', () => {
     const result = runFullAnalysis(files, mappings, 7)
-    const product = result.products.find((p) => p.sku === 'B07KCMR8D6')
+    const product = result.products.find((p) => p.sku === '161657830')
     expect(product?.availableInventory).toBe(0)
     expect(product?.primarySignal?.id).toBe('out-of-stock')
   })
 
   it('flags the seeded conflicting product record with a data-quality-hold signal', () => {
     const result = runFullAnalysis(files, mappings, 7)
-    const product = result.products.find((p) => p.sku === 'B0BBVKRP7B')
+    const product = result.products.find((p) => p.sku === '5344195287')
     expect(product?.signals.some((s) => s.id === 'data-quality-hold')).toBe(true)
   })
 
   it('flags the seeded unmatched sales SKU with a data-quality-hold signal', () => {
     const result = runFullAnalysis(files, mappings, 7)
-    const product = result.products.find((p) => p.sku === 'AMAZON-UNKNOWN-999')
+    const product = result.products.find((p) => p.sku === 'WALMART-UNKNOWN-999')
     expect(product?.primarySignal?.id).toBe('data-quality-hold')
   })
 
@@ -82,7 +82,7 @@ describe('runFullAnalysis (integration, real sample data)', () => {
   })
 
   it('computes catalog-only insights (no revenue/order metrics) when only a product file is uploaded', () => {
-    const catalogOnly = loadAsAddedFile('amazon-products.csv')
+    const catalogOnly = loadAsAddedFile('walmart-products.csv')
     const result = runFullAnalysis([catalogOnly.file], { [catalogOnly.file.id]: catalogOnly.mapping }, 7)
     expect(result.mode).toBe('catalog-only')
     expect(result.kpis.revenue).toBeUndefined()
@@ -91,7 +91,7 @@ describe('runFullAnalysis (integration, real sample data)', () => {
   })
 
   it('still surfaces reputation signals in catalog-only mode from real rating data', () => {
-    const catalogOnly = loadAsAddedFile('amazon-products.csv')
+    const catalogOnly = loadAsAddedFile('walmart-products.csv')
     const result = runFullAnalysis([catalogOnly.file], { [catalogOnly.file.id]: catalogOnly.mapping }, 7)
     const reputationSignals = result.products.filter((p) => p.signals.some((s) => s.id === 'reputation-concern' || s.id === 'promising-reputation'))
     expect(reputationSignals.length).toBeGreaterThan(0)

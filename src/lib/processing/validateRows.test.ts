@@ -128,6 +128,14 @@ describe('validateProductRows', () => {
     const results = validateProductRows(rows, productMappings, 'file-1')
     expect(results.map((r) => r.value?.sku)).toEqual(['SKU-1', 'SKU-2'])
   })
+
+  it('infers currency from a symbol embedded in the price when there is no currency column mapped (e.g. Amazon-style "₹399")', () => {
+    const rows: RawRow[] = [
+      { product_id: 'SKU-1', product_name: 'Widget', category: '', current_price: '₹399', rating: '', rating_count: '' },
+    ]
+    const [result] = validateProductRows(rows, productMappings, 'file-1')
+    expect(result.value?.currency).toBe('INR')
+  })
 })
 
 const inventoryMappings: ColumnMapping[] = [

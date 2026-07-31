@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { detectCurrency, detectCurrencyFromRecords } from './detectCurrency'
+import { detectCurrency, detectCurrencyFromRecords, sniffCurrencySymbol } from './detectCurrency'
 import type { SalesRecord } from './types'
 
 function sale(currency?: string): SalesRecord {
@@ -39,5 +39,27 @@ describe('detectCurrencyFromRecords', () => {
 
   it('works on plain objects with just a currency field (e.g. product records)', () => {
     expect(detectCurrencyFromRecords([{ currency: 'MXN' }, { currency: 'MXN' }, { currency: 'USD' }])).toBe('MXN')
+  })
+})
+
+describe('sniffCurrencySymbol', () => {
+  it('detects the rupee symbol embedded in a price string', () => {
+    expect(sniffCurrencySymbol('₹1,099')).toBe('INR')
+  })
+
+  it('detects other known symbols', () => {
+    expect(sniffCurrencySymbol('$22.90')).toBe('USD')
+    expect(sniffCurrencySymbol('€19.99')).toBe('EUR')
+    expect(sniffCurrencySymbol('฿350')).toBe('THB')
+  })
+
+  it('returns null when no known symbol is present', () => {
+    expect(sniffCurrencySymbol('1099')).toBeNull()
+  })
+
+  it('returns null for missing input', () => {
+    expect(sniffCurrencySymbol(undefined)).toBeNull()
+    expect(sniffCurrencySymbol(null)).toBeNull()
+    expect(sniffCurrencySymbol('')).toBeNull()
   })
 })

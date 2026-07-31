@@ -120,18 +120,25 @@ export function AddDataStep() {
           {SAMPLE_COMPANIES.map((company) => (
             <Button
               key={company.value}
+              data-testid={`sample-pill-${company.value}`}
               variant="secondary"
               size="sm"
               onClick={() => handleUseSampleData(company.value)}
               disabled={loadingSample !== null}
             >
-              {loadingSample === company.value ? 'Loading…' : company.label}
+              {loadingSample === company.value
+                ? 'Loading…'
+                : company.catalogOnly
+                  ? `${company.label} (catalog only)`
+                  : company.label}
             </Button>
           ))}
         </div>
         <p className="max-w-md text-center text-xs text-neutral-500 dark:text-neutral-400">
-          Each sample uses that company's real product catalog data, paired with illustrative sales
-          and inventory numbers so you can see the complete dashboard.
+          Product catalog data in every sample is real. Walmart, Shopee, and Shein also include
+          illustrative sales and inventory numbers so you can see the complete dashboard. Amazon's
+          sample is the original file, unmodified — no sales or inventory data, so it shows the
+          catalog-only view.
         </p>
       </div>
 

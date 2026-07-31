@@ -12,7 +12,7 @@ test('keyboard operability of the Add Data step', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Drop CSV files here/ })).toBeFocused()
 
   await page.keyboard.press('Tab')
-  await expect(page.getByRole('button', { name: 'Amazon', exact: true })).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Walmart', exact: true })).toBeFocused()
 
   // Enter activates a focused sample button.
   await page.keyboard.press('Enter')
@@ -26,7 +26,7 @@ test('keyboard operability of the Add Data step', async ({ page }) => {
 
 test('Escape closes the product detail dialog', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Amazon', exact: true }).click()
+  await page.getByRole('button', { name: 'Walmart', exact: true }).click()
   await page.getByRole('button', { name: 'Continue to confirm data' }).click()
   await page.getByRole('button', { name: 'Analyze products' }).click()
 

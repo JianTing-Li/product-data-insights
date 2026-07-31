@@ -1,5 +1,6 @@
 import { detectDateFormat, parseDate } from './dateParsers'
 import { normalizeMissing } from './normalizeMissing'
+import { sniffCurrencySymbol } from './detectCurrency'
 import { parseCurrency, parseNonNegativeInteger, parseNumber, parsePercent, parseQuantity } from './valueParsers'
 import type {
   ColumnMapping,
@@ -66,7 +67,8 @@ export function validateSalesRows(rows: RawRow[], mappings: ColumnMapping[], fil
       requiredFailed = true
     }
 
-    const sellingPriceResult = parseCurrency(getMappedRaw(raw, mappings, 'sellingPrice'))
+    const sellingPriceRaw = getMappedRaw(raw, mappings, 'sellingPrice')
+    const sellingPriceResult = parseCurrency(sellingPriceRaw)
     if (sellingPriceResult.issue || sellingPriceResult.value === null) {
       issues.push({ field: 'sellingPrice', message: sellingPriceResult.issue ?? 'Selling price is missing.' })
       requiredFailed = true
@@ -79,7 +81,7 @@ export function validateSalesRows(rows: RawRow[], mappings: ColumnMapping[], fil
     if (discountResult.issue) issues.push({ field: 'discount', message: discountResult.issue })
 
     const orderStatus = getMappedText(raw, mappings, 'orderStatus') ?? undefined
-    const currency = getMappedText(raw, mappings, 'currency') ?? undefined
+    const currency = getMappedText(raw, mappings, 'currency') ?? sniffCurrencySymbol(sellingPriceRaw) ?? undefined
 
     if (requiredFailed) {
       return { rowIndex, fileId, acceptance: 'rejected', issues, raw, value: null }
@@ -118,9 +120,11 @@ export function validateProductRows(rows: RawRow[], mappings: ColumnMapping[], f
       requiredFailed = true
     }
 
-    const currentPriceResult = parseCurrency(getMappedRaw(raw, mappings, 'currentPrice'))
+    const currentPriceRaw = getMappedRaw(raw, mappings, 'currentPrice')
+    const currentPriceResult = parseCurrency(currentPriceRaw)
     if (currentPriceResult.issue) issues.push({ field: 'currentPrice', message: currentPriceResult.issue })
-    const originalPriceResult = parseCurrency(getMappedRaw(raw, mappings, 'originalPrice'))
+    const originalPriceRaw = getMappedRaw(raw, mappings, 'originalPrice')
+    const originalPriceResult = parseCurrency(originalPriceRaw)
     if (originalPriceResult.issue) issues.push({ field: 'originalPrice', message: originalPriceResult.issue })
     const productCostResult = parseCurrency(getMappedRaw(raw, mappings, 'productCost'))
     if (productCostResult.issue) issues.push({ field: 'productCost', message: productCostResult.issue })
@@ -147,7 +151,11 @@ export function validateProductRows(rows: RawRow[], mappings: ColumnMapping[], f
       reviewText: getMappedText(raw, mappings, 'reviewText') ?? undefined,
       productUrl: getMappedText(raw, mappings, 'productUrl') ?? undefined,
       imageUrl: getMappedText(raw, mappings, 'imageUrl') ?? undefined,
-      currency: getMappedText(raw, mappings, 'currency') ?? undefined,
+      currency:
+        getMappedText(raw, mappings, 'currency') ??
+        sniffCurrencySymbol(currentPriceRaw) ??
+        sniffCurrencySymbol(originalPriceRaw) ??
+        undefined,
     }
 
     return { rowIndex, fileId, acceptance: issues.length > 0 ? 'warning' : 'accepted', issues, raw, value }

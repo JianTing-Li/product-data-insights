@@ -3,7 +3,7 @@ import { loadSampleAndAnalyze } from './helpers'
 
 test('export', async ({ page }) => {
   await page.goto('/')
-  await loadSampleAndAnalyze(page, 'Amazon')
+  await loadSampleAndAnalyze(page, 'Walmart')
 
   // Product-attention CSV, from Overview.
   const [attentionDownload] = await Promise.all([

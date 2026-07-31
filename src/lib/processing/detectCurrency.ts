@@ -4,6 +4,9 @@ const SYMBOL_TO_CODE: Record<string, string> = {
   '€': 'EUR',
   '£': 'GBP',
   '¥': 'JPY',
+  '₩': 'KRW',
+  '₽': 'RUB',
+  '฿': 'THB',
 }
 
 const VALID_CODE_RE = /^[A-Z]{3}$/
@@ -45,4 +48,17 @@ export function detectCurrencyFromRecords(records: { currency?: string }[]): str
  * symbol. Falls back to USD when no currency information is present. */
 export function detectCurrency(records: { currency?: string }[]): string {
   return detectCurrencyFromRecords(records) ?? 'USD'
+}
+
+/** Scans a raw price string (e.g. "₹1,099") for a known currency symbol and
+ * returns its ISO code, or null if none is found. Used as a fallback when a
+ * dataset has no dedicated currency column but embeds the symbol directly
+ * in price values — a shape real exports (e.g. Kaggle-style Amazon data)
+ * commonly use. */
+export function sniffCurrencySymbol(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  for (const [symbol, code] of Object.entries(SYMBOL_TO_CODE)) {
+    if (raw.includes(symbol)) return code
+  }
+  return null
 }

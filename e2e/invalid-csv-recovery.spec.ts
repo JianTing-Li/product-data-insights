@@ -22,7 +22,7 @@ test('invalid CSV recovery', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Continue to confirm data' })).toBeDisabled()
 
   // Recovery: adding a real sample afterward still works, error files remain listed.
-  await page.getByRole('button', { name: 'Amazon', exact: true }).click()
+  await page.getByRole('button', { name: 'Walmart', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Continue to confirm data' })).toBeEnabled()
   await expect(page.getByText('notes.txt')).toBeVisible()
   await expect(page.getByText('empty.csv')).toBeVisible()

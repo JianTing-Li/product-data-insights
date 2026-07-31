@@ -4,12 +4,17 @@
 // be regenerated. Requires the source files locally; none are committed to
 // the repo.
 //
-// For each company, produces:
+// For each company in COMPANIES, produces:
 //   public/sample-data/{company}-products.csv   — ~14 curated real rows, verbatim
 //   public/sample-data/{company}-sales.csv      — illustrative, keyed to the real product IDs above
 //   public/sample-data/{company}-inventory.csv  — illustrative, keyed to the real product IDs above
+//
+// Amazon is a deliberate exception (see AMAZON_SOURCE_PATH below): its
+// products file is copied byte-for-byte with no curation and gets no
+// sales/inventory files at all, so it stays a fully real, catalog-only
+// sample rather than a real-catalog-plus-fabricated-activity one.
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import Papa from 'papaparse'
 
@@ -17,26 +22,9 @@ const OUT_DIR = fileURLToPath(new URL('../public/sample-data/', import.meta.url)
 mkdirSync(OUT_DIR, { recursive: true })
 
 const DATASET_DIR = '/Users/jt/Downloads/eCommerce-dataset-samples-main'
+const AMAZON_SOURCE_PATH = '/Users/jt/Downloads/amazon.csv'
 
 const COMPANIES = [
-  {
-    key: 'amazon',
-    sourcePath: '/Users/jt/Downloads/amazon.csv',
-    idCol: 'product_id',
-    nameCol: 'product_name',
-    priceCol: 'discounted_price',
-    ratingCol: 'rating',
-    ratingCountCol: 'rating_count',
-    categoryCol: 'category',
-    // Amazon's category is pipe-delimited ("Electronics|Wearables|..."); group
-    // by the top-level segment only, matching the original curated selection
-    // this app's tests were written against.
-    categoryKeyFn: (row) => (row.category || '').split('|')[0] || 'Uncategorized',
-    currencyCol: null,
-    defaultCurrency: 'INR',
-    // Hand-picked (not auto-derived) so this exact set stays stable across regenerations.
-    mustInclude: ['B0BBVKRP7B', 'B0B53DS4TF', 'B07JW9H4J1', 'B098NS6PVG'],
-  },
   {
     key: 'walmart',
     sourcePath: `${DATASET_DIR}/walmart-products.csv`,
@@ -70,18 +58,6 @@ const COMPANIES = [
     ratingCol: 'rating',
     ratingCountCol: 'reviews_count',
     categoryCol: 'category',
-    currencyCol: 'currency',
-    defaultCurrency: 'USD',
-  },
-  {
-    key: 'lazada',
-    sourcePath: `${DATASET_DIR}/lazada-products.csv`,
-    idCol: 'sku',
-    nameCol: 'title',
-    priceCol: 'final_price',
-    ratingCol: 'rating',
-    ratingCountCol: 'reviews',
-    categoryCol: 'breadcrumb',
     currencyCol: 'currency',
     defaultCurrency: 'USD',
   },
@@ -285,3 +261,22 @@ function generateCompany(cfg) {
 for (const cfg of COMPANIES) {
   generateCompany(cfg)
 }
+
+/** Amazon exception: copies the real product export as-is, no curation and
+ * no fabricated sales/inventory — a fully real, catalog-only sample. */
+function copyAmazonProductsVerbatim() {
+  console.log('\n=== amazon (verbatim, catalog-only) ===')
+  try {
+    copyFileSync(AMAZON_SOURCE_PATH, OUT_DIR + 'amazon-products.csv')
+    const rowCount = readFileSync(AMAZON_SOURCE_PATH, 'utf8').trim().split('\n').length - 1
+    console.log(`wrote amazon-products.csv: ${rowCount} rows (byte-for-byte copy of ${AMAZON_SOURCE_PATH})`)
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      console.warn(`Skipping amazon: source file not found at ${AMAZON_SOURCE_PATH}`)
+    } else {
+      throw err
+    }
+  }
+}
+
+copyAmazonProductsVerbatim()

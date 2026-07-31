@@ -4,7 +4,7 @@ import { loadSampleAndAnalyze } from './helpers'
 test('full product, sales, and inventory analysis', async ({ page }) => {
   await page.goto('/')
 
-  await loadSampleAndAnalyze(page, 'Amazon')
+  await loadSampleAndAnalyze(page, 'Walmart')
 
   // Overview: KPI cards render with real numbers.
   await expect(page.getByTestId('kpi-card-Revenue')).toBeVisible()

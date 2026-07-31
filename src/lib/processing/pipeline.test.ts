@@ -31,9 +31,9 @@ function loadAsAddedFile(filename: string): { file: AddedFile; mapping: FileMapp
 }
 
 describe('runPipeline (integration, real sample data)', () => {
-  const sales = loadAsAddedFile('amazon-sales.csv')
-  const products = loadAsAddedFile('amazon-products.csv')
-  const inventory = loadAsAddedFile('amazon-inventory.csv')
+  const sales = loadAsAddedFile('walmart-sales.csv')
+  const products = loadAsAddedFile('walmart-products.csv')
+  const inventory = loadAsAddedFile('walmart-inventory.csv')
 
   const files = [sales.file, products.file, inventory.file]
   const mappings: Record<string, FileMapping> = {
@@ -63,19 +63,19 @@ describe('runPipeline (integration, real sample data)', () => {
   it('deduplicates the catalog and flags the seeded conflicting product record', () => {
     const result = runPipeline(files, mappings, 7)
     expect(result.dataQuality.conflictingProductRecords).toHaveLength(1)
-    expect(result.dataQuality.conflictingProductRecords[0].sku).toBe('B0BBVKRP7B')
+    expect(result.dataQuality.conflictingProductRecords[0].sku).toBe('5344195287')
     // Only one joined product for that SKU despite two source rows (grain-safe dedup).
-    expect(result.products.filter((p) => p.sku === 'B0BBVKRP7B')).toHaveLength(1)
+    expect(result.products.filter((p) => p.sku === '5344195287')).toHaveLength(1)
   })
 
   it('flags the seeded unmatched product ID from the sales file', () => {
     const result = runPipeline(files, mappings, 7)
-    expect(result.dataQuality.unmatchedProductIds).toContainEqual({ sku: 'AMAZON-UNKNOWN-999', source: 'sales' })
+    expect(result.dataQuality.unmatchedProductIds).toContainEqual({ sku: 'WALMART-UNKNOWN-999', source: 'sales' })
   })
 
   it('flags the seeded product with no inventory record', () => {
     const result = runPipeline(files, mappings, 7)
-    expect(result.dataQuality.missingInventory.map((m) => m.sku)).toContain('B076B8G5D8')
+    expect(result.dataQuality.missingInventory.map((m) => m.sku)).toContain('6013308220')
   })
 
   it('flags the seeded invalid quantity, unparseable price, invalid date, and duplicate row', () => {
@@ -96,25 +96,25 @@ describe('runPipeline (integration, real sample data)', () => {
 
   it('joins the real out-of-stock product with zero available inventory', () => {
     const result = runPipeline(files, mappings, 7)
-    const product = result.products.find((p) => p.sku === 'B07KCMR8D6')
+    const product = result.products.find((p) => p.sku === '161657830')
     expect(product?.hasInventoryData).toBe(true)
     expect(product?.availableInventory).toBe(0)
   })
 
   it('sums inventory across the two warehouses for a normal product', () => {
     const result = runPipeline(files, mappings, 7)
-    const product = result.products.find((p) => p.sku === 'B0B53DS4TF')
+    const product = result.products.find((p) => p.sku === '669112285')
     expect(product?.warehouses).toEqual(['WH-EAST', 'WH-WEST'])
     expect(product?.availableInventory).toBeGreaterThan(0)
   })
 
   it('preserves the real product ID text exactly (no case/format changes)', () => {
     const result = runPipeline(files, mappings, 7)
-    expect(result.products.some((p) => p.sku === 'B0B53DS4TF')).toBe(true)
+    expect(result.products.some((p) => p.sku === '669112285')).toBe(true)
   })
 
   it('reports catalog-only mode when only the product file is present', () => {
-    const catalogOnly = loadAsAddedFile('amazon-products.csv')
+    const catalogOnly = loadAsAddedFile('walmart-products.csv')
     const result = runPipeline([catalogOnly.file], { [catalogOnly.file.id]: catalogOnly.mapping }, 7)
     expect(result.mode).toBe('catalog-only')
     expect(result.period).toBeNull()
