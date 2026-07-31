@@ -26,6 +26,10 @@
   --color-danger-500: #c94141;
   --color-danger-600: #a83333;
 
+  --color-coral-400: #ff8a72;
+  --color-coral-500: #f0603f;
+  --color-coral-600: #d6472a;
+
   --animate-fade-in: fade-in 200ms ease-out;
 
   @keyframes fade-in {
