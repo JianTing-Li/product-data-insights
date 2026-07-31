@@ -24,3 +24,24 @@ export function formatDays(value: number | undefined | null): string {
   if (!Number.isFinite(value)) return 'No recent sales'
   return `${value.toFixed(1)} days`
 }
+
+/** Formats a start/end date pair for display, e.g. "Jun 8–28, 2026" when
+ * both fall in the same month, or "Jan 3 – Jun 28, 2026" when they don't.
+ * Dates are read as UTC (matching how this app constructs them from parsed
+ * CSV rows) so the displayed day never shifts with the viewer's timezone. */
+export function formatDateRange(start: Date, end: Date): string {
+  const sameYear = start.getUTCFullYear() === end.getUTCFullYear()
+  const sameMonth = sameYear && start.getUTCMonth() === end.getUTCMonth()
+
+  if (sameMonth) {
+    const month = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(start)
+    return `${month} ${start.getUTCDate()}–${end.getUTCDate()}, ${end.getUTCFullYear()}`
+  }
+
+  const startOpts: Intl.DateTimeFormatOptions = sameYear
+    ? { month: 'short', day: 'numeric', timeZone: 'UTC' }
+    : { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
+  const startLabel = new Intl.DateTimeFormat('en-US', startOpts).format(start)
+  const endLabel = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(end)
+  return `${startLabel} – ${endLabel}`
+}

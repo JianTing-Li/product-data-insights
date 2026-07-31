@@ -5,10 +5,12 @@ import { ConfirmDataStep } from '@/components/confirm-data/ConfirmDataStep'
 import { InsightsStep } from '@/components/insights/InsightsStep'
 import { useAnalysisStore } from '@/state/analysisStore'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { useScrollToTopOnChange } from '@/hooks/useScrollToTopOnChange'
 
 function App() {
   const step = useAnalysisStore((s) => s.step)
   const reducedMotion = useReducedMotion()
+  useScrollToTopOnChange(step)
 
   return (
     <AppShell>

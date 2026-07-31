@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'motion/react'
 import { Info } from 'lucide-react'
 import { Tabs, TabPanel } from '@/components/ui/Tabs'
 import { Card } from '@/components/ui/Card'
@@ -6,6 +7,8 @@ import { OverviewView } from './OverviewView'
 import { AllProductsView } from './AllProductsView'
 import { DataQualityView } from './DataQualityView'
 import { useAnalysisStore } from '@/state/analysisStore'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { useScrollToTopOnChange } from '@/hooks/useScrollToTopOnChange'
 
 const tabItems = [
   { value: 'overview', label: 'Overview' },
@@ -16,6 +19,8 @@ const tabItems = [
 export function InsightsStep() {
   const analysis = useAnalysisStore((s) => s.analysis)
   const [tab, setTab] = useState('overview')
+  const reducedMotion = useReducedMotion()
+  useScrollToTopOnChange(tab)
 
   if (!analysis) return null
 
@@ -32,15 +37,22 @@ export function InsightsStep() {
       )}
 
       <Tabs items={tabItems} value={tab} onValueChange={setTab}>
-        <TabPanel value="overview" className="pt-6 focus:outline-none">
-          <OverviewView analysis={analysis} onNavigate={setTab} />
-        </TabPanel>
-        <TabPanel value="all-products" className="pt-6 focus:outline-none">
-          <AllProductsView analysis={analysis} />
-        </TabPanel>
-        <TabPanel value="data-quality" className="pt-6 focus:outline-none">
-          <DataQualityView report={analysis.dataQuality} />
-        </TabPanel>
+        <motion.div
+          key={tab}
+          initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+        >
+          <TabPanel value="overview" className="pt-6 focus:outline-none">
+            <OverviewView analysis={analysis} onNavigate={setTab} />
+          </TabPanel>
+          <TabPanel value="all-products" className="pt-6 focus:outline-none">
+            <AllProductsView analysis={analysis} />
+          </TabPanel>
+          <TabPanel value="data-quality" className="pt-6 focus:outline-none">
+            <DataQualityView report={analysis.dataQuality} />
+          </TabPanel>
+        </motion.div>
       </Tabs>
     </div>
   )

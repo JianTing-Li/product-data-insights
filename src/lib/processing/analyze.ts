@@ -1,7 +1,7 @@
 import { computeKpis, computeProductMetrics, computeRevenueDeclineContribution } from './metrics'
 import { runPipeline } from './pipeline'
 import { generateProductSignals } from './signals'
-import type { AddedFile, AnalysisResult, FileMapping } from './types'
+import type { AddedFile, AnalysisResult, FileMapping, PeriodSelection } from './types'
 
 /** Runs the complete pipeline — parse, clean, aggregate, join, calculate
  * metrics, generate signals — producing the final AnalysisResult the
@@ -9,7 +9,7 @@ import type { AddedFile, AnalysisResult, FileMapping } from './types'
 export function runFullAnalysis(
   files: AddedFile[],
   mappings: Record<string, FileMapping>,
-  periodLength: 7 | 30,
+  periodLength: PeriodSelection,
 ): AnalysisResult {
   const pipeline = runPipeline(files, mappings, periodLength)
   const kpis = computeKpis(pipeline.overallSales)

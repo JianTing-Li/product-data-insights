@@ -239,11 +239,33 @@ export interface PeriodWindow {
   end: Date
 }
 
+export type PeriodLength = 7 | 14 | 30 | 90
+
+/** An explicit start/end window (inclusive), given as ISO 'YYYY-MM-DD' dates —
+ * a string format so it binds directly to an <input type="date">. */
+export interface CustomPeriodRange {
+  startDate: string
+  endDate: string
+}
+
+/** What the user asked for: either a rolling preset ("last N days", anchored
+ * to the latest date in the data) or an explicit custom range. */
+export type PeriodSelection = PeriodLength | CustomPeriodRange
+
 export interface AnalysisPeriod {
-  lengthDays: 7 | 30
+  /** The resolved window's actual day count, after clamping to the dataset's
+   * range. Equal to requestedLengthDays unless isClamped is true. */
+  lengthDays: number
+  /** What was originally asked for — the raw PeriodLength preset, or the raw
+   * span of a custom range — before any clamping to the available data. */
+  requestedLengthDays: number
+  /** True when the requested window extended beyond the dataset's actual
+   * date range and had to be clamped to fit it. */
+  isClamped: boolean
   current: PeriodWindow
   previous: PeriodWindow | null
   hasSufficientHistory: boolean
+  datasetEarliestDate: Date | null
   datasetLatestDate: Date | null
 }
 

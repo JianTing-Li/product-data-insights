@@ -58,9 +58,12 @@ describe('computeKpis', () => {
 
 const period30: AnalysisPeriod = {
   lengthDays: 30,
+  requestedLengthDays: 30,
+  isClamped: false,
   current: { start: new Date('2026-06-29'), end: new Date('2026-07-28') },
   previous: { start: new Date('2026-05-30'), end: new Date('2026-06-28') },
   hasSufficientHistory: true,
+  datasetEarliestDate: new Date('2026-01-01'),
   datasetLatestDate: new Date('2026-07-28'),
 }
 

@@ -15,6 +15,7 @@ import type {
   DataQualityReport,
   DatasetKind,
   FileMapping,
+  PeriodSelection,
   ProductPerformance,
 } from './types'
 
@@ -41,7 +42,7 @@ export interface PipelineOutput {
 export function runPipeline(
   files: AddedFile[],
   mappings: Record<string, FileMapping>,
-  periodLength: 7 | 30,
+  periodLength: PeriodSelection,
 ): PipelineOutput {
   const parsedFiles = files.filter((f) => f.status === 'parsed')
   const salesFiles = parsedFiles.filter((f) => mappings[f.id]?.datasetKind === 'sales')

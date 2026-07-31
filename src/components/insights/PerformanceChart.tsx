@@ -1,10 +1,12 @@
+import { Info } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card } from '@/components/ui/Card'
 import { Select } from '@/components/ui/Select'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useAnalysisStore } from '@/state/analysisStore'
-import { formatCurrency, formatNumber } from '@/lib/format'
-import type { DailySalesPoint } from '@/lib/processing/types'
+import { cn } from '@/lib/cn'
+import { formatCurrency, formatDateRange, formatNumber } from '@/lib/format'
+import type { AnalysisPeriod, DailySalesPoint } from '@/lib/processing/types'
 
 const metricOptions = [
   { value: 'revenue', label: 'Revenue' },
@@ -18,7 +20,15 @@ const metricLabel: Record<'revenue' | 'orders' | 'units', string> = {
   units: 'Units sold',
 }
 
-export function PerformanceChart({ series, currency }: { series: DailySalesPoint[]; currency: string }) {
+export function PerformanceChart({
+  series,
+  currency,
+  period,
+}: {
+  series: DailySalesPoint[]
+  currency: string
+  period: AnalysisPeriod | null
+}) {
   const metric = useAnalysisStore((s) => s.chartMetric)
   const setMetric = useAnalysisStore((s) => s.setChartMetric)
   const reducedMotion = useReducedMotion()
@@ -34,6 +44,11 @@ export function PerformanceChart({ series, currency }: { series: DailySalesPoint
   )
   const yAxisWidth = Math.max(56, longestYAxisLabelLength * 7 + 16)
 
+  const clampedRange =
+    period?.isClamped && period.datasetEarliestDate && period.datasetLatestDate
+      ? { lengthDays: period.lengthDays, earliest: period.datasetEarliestDate, latest: period.datasetLatestDate }
+      : null
+
   if (series.length === 0) {
     return (
       <Card className="p-4">
@@ -47,7 +62,7 @@ export function PerformanceChart({ series, currency }: { series: DailySalesPoint
 
   return (
     <Card className="p-4">
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className={cn('flex items-center justify-between gap-3', clampedRange ? 'mb-1' : 'mb-3')}>
         <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Performance</h3>
         <Select
           ariaLabel="Chart metric"
@@ -56,6 +71,13 @@ export function PerformanceChart({ series, currency }: { series: DailySalesPoint
           options={metricOptions}
         />
       </div>
+      {clampedRange && (
+        <p className="mb-3 flex items-center gap-1.5 text-xs text-neutral-400 dark:text-neutral-500">
+          <Info className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          Showing {clampedRange.lengthDays} day{clampedRange.lengthDays === 1 ? '' : 's'} — full data range (
+          {formatDateRange(clampedRange.earliest, clampedRange.latest)})
+        </p>
+      )}
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>

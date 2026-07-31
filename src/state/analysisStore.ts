@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { runFullAnalysis } from '@/lib/processing/analyze'
-import type { AddedFile, AnalysisResult, FileMapping, SignalId } from '@/lib/processing/types'
+import type { AddedFile, AnalysisResult, FileMapping, PeriodSelection, SignalId } from '@/lib/processing/types'
 
 export type Step = 1 | 2 | 3
 
@@ -21,7 +21,7 @@ interface AnalysisState {
   files: AddedFile[]
   fileMappings: Record<string, FileMapping>
   analysis: AnalysisResult | null
-  periodLength: 7 | 30
+  periodLength: PeriodSelection
   chartMetric: 'revenue' | 'orders' | 'units'
   filters: ProductFilters
   isAnalyzing: boolean
@@ -35,7 +35,7 @@ interface AnalysisState {
   setAnalysis: (result: AnalysisResult) => void
   setIsAnalyzing: (value: boolean) => void
   runAnalysis: () => void
-  setPeriodLength: (length: 7 | 30) => void
+  setPeriodLength: (length: PeriodSelection) => void
   setChartMetric: (metric: 'revenue' | 'orders' | 'units') => void
   setFilters: (patch: Partial<ProductFilters>) => void
   clearFilters: () => void

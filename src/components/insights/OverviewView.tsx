@@ -7,19 +7,29 @@ import { PerformanceChart } from './PerformanceChart'
 import { ProductDetailDialog } from './ProductDetailDialog'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
-import { formatCurrency, formatNumber } from '@/lib/format'
+import { formatCurrency, formatDateRange, formatNumber } from '@/lib/format'
 import { toCsv } from '@/lib/csv/exportCsv'
 import { downloadCsv } from '@/lib/csv/downloadCsv'
 import { buildProductAttentionTable } from '@/lib/processing/exportRows'
 import { useAnalysisStore } from '@/state/analysisStore'
-import type { AnalysisResult, SignalSeverity } from '@/lib/processing/types'
+import type { AnalysisResult, PeriodLength, SignalSeverity } from '@/lib/processing/types'
 
 const severityRank: Record<SignalSeverity, number> = { high: 0, medium: 1, low: 2 }
 
 const periodOptions = [
   { value: '7', label: 'Last 7 days' },
+  { value: '14', label: 'Last 14 days' },
   { value: '30', label: 'Last 30 days' },
+  { value: '90', label: 'Last 90 days' },
+  { value: 'custom', label: 'Custom range' },
 ]
+
+const dateInputClassName =
+  'rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-sm text-neutral-800 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100'
+
+function toIsoDateString(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
 
 export function OverviewView({
   analysis,
@@ -31,6 +41,40 @@ export function OverviewView({
   const [selectedSku, setSelectedSku] = useState<string | null>(null)
   const periodLength = useAnalysisStore((s) => s.periodLength)
   const setPeriodLength = useAnalysisStore((s) => s.setPeriodLength)
+
+  // Whether the Period control is showing the custom start/end date inputs.
+  // Kept separate from the store's periodLength so switching to "Custom
+  // range" reveals the pickers immediately without discarding the last
+  // resolved analysis (and thus the whole Period row) while the user is
+  // still picking dates — the store only updates once both dates are valid.
+  const [periodMode, setPeriodMode] = useState<'preset' | 'custom'>(
+    typeof periodLength === 'number' ? 'preset' : 'custom',
+  )
+  const [customStart, setCustomStart] = useState(typeof periodLength === 'object' ? periodLength.startDate : '')
+  const [customEnd, setCustomEnd] = useState(typeof periodLength === 'object' ? periodLength.endDate : '')
+  const customRangeInvalid = customStart !== '' && customEnd !== '' && customEnd < customStart
+
+  function handlePeriodSelectChange(value: string) {
+    if (value === 'custom') {
+      setPeriodMode('custom')
+      if (customStart && customEnd && customEnd >= customStart) {
+        setPeriodLength({ startDate: customStart, endDate: customEnd })
+      }
+    } else {
+      setPeriodMode('preset')
+      setPeriodLength(Number(value) as PeriodLength)
+    }
+  }
+
+  function handleCustomDateChange(field: 'start' | 'end', value: string) {
+    const nextStart = field === 'start' ? value : customStart
+    const nextEnd = field === 'end' ? value : customEnd
+    if (field === 'start') setCustomStart(value)
+    else setCustomEnd(value)
+    if (nextStart && nextEnd && nextEnd >= nextStart) {
+      setPeriodLength({ startDate: nextStart, endDate: nextEnd })
+    }
+  }
 
   const productsNeedingAttention = useMemo(
     () => analysis.products.filter((p) => p.primarySignal),
@@ -65,14 +109,47 @@ export function OverviewView({
   return (
     <div className="flex flex-col gap-8">
       {analysis.mode === 'full' && analysis.period && (
-        <div className="flex items-center justify-end gap-2">
-          <span className="text-sm text-neutral-500 dark:text-neutral-400">Period</span>
-          <Select
-            ariaLabel="Analysis period"
-            value={String(periodLength)}
-            onValueChange={(v) => setPeriodLength(Number(v) as 7 | 30)}
-            options={periodOptions}
-          />
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <span className="text-sm text-neutral-500 dark:text-neutral-400">Period</span>
+            <Select
+              ariaLabel="Analysis period"
+              value={periodMode === 'custom' ? 'custom' : String(periodLength)}
+              onValueChange={handlePeriodSelectChange}
+              options={periodOptions}
+            />
+            {periodMode === 'custom' && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  aria-label="Custom range start date"
+                  value={customStart}
+                  min={analysis.period.datasetEarliestDate ? toIsoDateString(analysis.period.datasetEarliestDate) : undefined}
+                  max={customEnd || (analysis.period.datasetLatestDate ? toIsoDateString(analysis.period.datasetLatestDate) : undefined)}
+                  onChange={(e) => handleCustomDateChange('start', e.target.value)}
+                  className={dateInputClassName}
+                />
+                <span className="text-sm text-neutral-400">to</span>
+                <input
+                  type="date"
+                  aria-label="Custom range end date"
+                  value={customEnd}
+                  min={customStart || (analysis.period.datasetEarliestDate ? toIsoDateString(analysis.period.datasetEarliestDate) : undefined)}
+                  max={analysis.period.datasetLatestDate ? toIsoDateString(analysis.period.datasetLatestDate) : undefined}
+                  onChange={(e) => handleCustomDateChange('end', e.target.value)}
+                  className={dateInputClassName}
+                />
+                {customRangeInvalid && (
+                  <span className="text-xs text-danger-600 dark:text-danger-500">End date must be after start date</span>
+                )}
+              </div>
+            )}
+          </div>
+          {analysis.period.datasetEarliestDate && analysis.period.datasetLatestDate && (
+            <span className="text-xs text-neutral-400 dark:text-neutral-500">
+              Data range: {formatDateRange(analysis.period.datasetEarliestDate, analysis.period.datasetLatestDate)}
+            </span>
+          )}
         </div>
       )}
 
@@ -153,18 +230,9 @@ export function OverviewView({
         )}
       </section>
 
-      {analysis.mode === 'full' && <PerformanceChart series={analysis.dailySeries} currency={analysis.currency} />}
-
-      <div className="flex flex-wrap gap-3 border-t border-neutral-200 pt-6 dark:border-neutral-800">
-        <Button variant="secondary" size="sm" onClick={() => onNavigate('all-products')}>
-          All products
-          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </Button>
-        <Button variant="secondary" size="sm" onClick={() => onNavigate('data-quality')}>
-          Data quality
-          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </Button>
-      </div>
+      {analysis.mode === 'full' && (
+        <PerformanceChart series={analysis.dailySeries} currency={analysis.currency} period={analysis.period} />
+      )}
 
       <ProductDetailDialog product={selectedProduct} currency={analysis.currency} onClose={() => setSelectedSku(null)} />
     </div>

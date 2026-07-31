@@ -144,12 +144,24 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
               {hasInventory && <th scope="col" className="px-4 py-2.5 font-medium">Available inventory</th>}
               {hasRating && <th scope="col" className="px-4 py-2.5 font-medium">Rating</th>}
               <th scope="col" className="px-4 py-2.5 font-medium">Attention</th>
-              <th scope="col" className="px-4 py-2.5 font-medium sr-only">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 bg-white dark:divide-neutral-800 dark:bg-neutral-900">
             {paginated.map((p) => (
-              <tr key={p.sku} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
+              <tr
+                key={p.sku}
+                role="button"
+                tabIndex={0}
+                aria-label={`Inspect ${p.productName}`}
+                onClick={() => setSelectedSku(p.sku)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelectedSku(p.sku)
+                  }
+                }}
+                className="cursor-pointer transition-colors duration-150 hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+              >
                 <td className="max-w-[260px] px-4 py-2.5">
                   <p className="truncate font-medium text-neutral-800 dark:text-neutral-100">{p.productName}</p>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">{p.sku}</p>
@@ -167,16 +179,11 @@ export function AllProductsView({ analysis }: { analysis: AnalysisResult }) {
                     <span className="text-xs text-neutral-400">None</span>
                   )}
                 </td>
-                <td className="px-4 py-2.5 text-right">
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedSku(p.sku)}>
-                    Inspect
-                  </Button>
-                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                <td colSpan={8} className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
                   No products match the current filters.
                 </td>
               </tr>

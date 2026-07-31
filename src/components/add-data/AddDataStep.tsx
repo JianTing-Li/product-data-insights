@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { CheckCircle2, ShieldCheck } from 'lucide-react'
 import { FileDropzone } from './FileDropzone'
 import { FileListItem } from './FileListItem'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useAnalysisStore } from '@/state/analysisStore'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { ingestFile } from '@/lib/processing/ingestFile'
 import { loadSampleFiles, SAMPLE_COMPANIES, type SampleCompany } from '@/data/sampleFiles'
 
@@ -15,6 +17,7 @@ export function AddDataStep() {
   const clearFiles = useAnalysisStore((s) => s.clearFiles)
   const setStep = useAnalysisStore((s) => s.setStep)
   const [loadingSample, setLoadingSample] = useState<SampleCompany | null>(null)
+  const reducedMotion = useReducedMotion()
 
   async function handleFiles(fileList: File[]) {
     const parsed = await Promise.all(fileList.map((f) => ingestFile(f, 'upload')))
@@ -59,36 +62,47 @@ export function AddDataStep() {
 
       <FileDropzone onFiles={handleFiles} />
 
-      {files.length > 0 && (
-        <div className="animate-fade-in flex items-center justify-between gap-3 rounded-lg border border-success-500/30 bg-success-50 px-4 py-2.5 dark:border-success-500/20 dark:bg-success-500/10">
-          <div className="flex min-w-0 items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-success-600 dark:text-success-500" aria-hidden="true" />
-            <p className="min-w-0 truncate text-sm text-neutral-800 dark:text-neutral-100">
-              <span className="font-medium">
-                {files.length} file{files.length === 1 ? '' : 's'} added
-              </span>
-              {' · '}
-              {filenamesPreview}
-            </p>
-          </div>
-          <Button variant="secondary" size="sm" className="shrink-0" onClick={clearFiles}>
-            Clear files
-          </Button>
-        </div>
-      )}
+      <AnimatePresence>
+        {files.length > 0 && (
+          <motion.div
+            key="added-files"
+            initial={reducedMotion ? false : { opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={reducedMotion ? undefined : { opacity: 0, height: 0 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="overflow-hidden"
+          >
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-success-500/30 bg-success-50 px-4 py-2.5 dark:border-success-500/20 dark:bg-success-500/10">
+                <div className="flex min-w-0 items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-success-600 dark:text-success-500" aria-hidden="true" />
+                  <p className="min-w-0 truncate text-sm text-neutral-800 dark:text-neutral-100">
+                    <span className="font-medium">
+                      {files.length} file{files.length === 1 ? '' : 's'} added
+                    </span>
+                    {' · '}
+                    {filenamesPreview}
+                  </p>
+                </div>
+                <Button variant="secondary" size="sm" className="shrink-0" onClick={clearFiles}>
+                  Clear files
+                </Button>
+              </div>
 
-      {files.length > 0 && (
-        <div>
-          <h3 className="mb-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            Added files ({files.length})
-          </h3>
-          <ul className="flex flex-col gap-2">
-            {files.map((file) => (
-              <FileListItem key={file.id} file={file} onRemove={removeFile} />
-            ))}
-          </ul>
-        </div>
-      )}
+              <div>
+                <h3 className="mb-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                  Added files ({files.length})
+                </h3>
+                <ul className="flex flex-col gap-2">
+                  {files.map((file) => (
+                    <FileListItem key={file.id} file={file} onRemove={removeFile} />
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="flex items-center justify-center gap-3">
         <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" aria-hidden="true" />

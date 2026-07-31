@@ -48,9 +48,14 @@ describe('computeDailySeries', () => {
   })
 
   it('spans only the current window when there is no previous period', () => {
+    // Only 4 days of data exist, so the requested 7-day preset gets clamped down to
+    // those 4 days (see computeAnalysisPeriod's clamping) rather than padding in
+    // phantom days before any data existed.
     const period = computeAnalysisPeriod([utcDate('2026-07-25'), utcDate('2026-07-28')], 7)!
     expect(period.previous).toBeNull()
+    expect(period.isClamped).toBe(true)
+    expect(period.lengthDays).toBe(4)
     const series = computeDailySeries([], period)
-    expect(series).toHaveLength(7)
+    expect(series).toHaveLength(4)
   })
 })
