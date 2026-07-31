@@ -1,35 +1,35 @@
-# Product Pounce
+**Product Pounce is a browser-based product intelligence dashboard for e-commerce teams turning product, sales, and inventory CSVs into prioritized actions.**
 
-Product intelligence for e-commerce analysts.
+## Screenshot
 
-Product Pounce helps e-commerce analysts at small and medium-sized companies combine
-product, sales, and inventory CSV files into a clean product-performance dashboard and
-a prioritized list of products to investigate — entirely in the browser, with no backend.
+> Product screenshot or GIF coming soon.
 
-## Stack
+## Problem
 
-React, TypeScript, Vite, Tailwind CSS, Radix UI primitives, Recharts, Motion, Zustand,
-Vitest, Playwright.
+E-commerce performance data is often split across inconsistent CSV exports. Analysts must clean, join, and interpret those files before they can identify products that need attention.
 
-## Development
+## Solution
+
+Product Pounce detects each dataset and maps its columns, then builds a unified performance dashboard entirely in the browser. It surfaces KPIs, trends, product-level signals, and inspectable data-quality issues without requiring a backend.
+
+## Key decisions
+
+- **Local-only processing** — files never leave the browser
+- **Confidence-based auto-mapping** — only uncertain columns need review
+- **Flexible inputs** — analyze one or more product, sales, and inventory files
+- **Catalog-only mode** — useful insights even when sales data is unavailable
+- **Prioritized signals** — rank stock, sales, margin, pricing, and reputation concerns
+- **Transparent data quality** — inspect and export every detected issue
+- **Adjustable analysis periods** — compare preset or custom date ranges
+- **Exportable results** — download attention lists and quality reports as CSV
+
+## Tech stack
+
+**React 19 · TypeScript 6 · Vite 8 · Tailwind CSS 4 · Zustand 5 · Recharts 3 · Radix UI · Motion · Papa Parse · Vitest · Playwright**
+
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
-
-## Scripts
-
-- `npm run dev` — start the dev server
-- `npm run build` — type-check and build static files to `dist/`
-- `npm run preview` — preview the production build
-- `npm run lint` — lint with oxlint
-- `npm run test` — run unit tests once
-- `npm run test:watch` — run unit tests in watch mode
-- `npm run e2e` — run Playwright end-to-end tests (builds and serves the app first)
-
-## Architecture
-
-The CSV parsing, cleaning, aggregation, joins, metrics, and product-signal logic live in
-`src/lib/processing/` as pure, dependency-free TypeScript modules, independent of React.
-UI components consume the pipeline's output only through the Zustand store in `src/state/`.
