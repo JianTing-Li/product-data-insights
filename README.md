@@ -171,8 +171,3 @@ At the time of this README update, the suite contains 261 passing Vitest tests a
 - **AI system design:** draws a deliberate boundary between tasks that benefit from probabilistic inference and tasks where deterministic, inspectable logic is safer today.
 - **Reliability and failure handling:** represents uncertainty explicitly, validates inputs, withholds unsupported comparisons, and preserves rejected data for review.
 - **Production-minded engineering:** uses typed domain boundaries, pure testable stages, privacy-conscious architecture, browser-level regression tests, and honest operational constraints.
-
-## Author
-
-**Jian Ting Li**<br>
-[GitHub](https://github.com/JianTing-Li) · [jiantingli@pursuit.org](mailto:jiantingli@pursuit.org)
